@@ -17,7 +17,7 @@ All configuration is handled via environment variables, a full list can be found
 | CONFIG_HTTP_SCHEME | Local HTTP/HTTPS binding for server | http |
 | CONFIG_HTTP_OPSINTERVAL | Interval in milliseconds for reporting stats | 900000 |
 | CONFIG_HTTP_PUBLICSCHEME | Public HTTP/HTTPS binding for server | http |
-| CONFIG_HTTP_PUBLICHOST | Publically accessible address of server | localhost:3000 |
+| CONFIG_HTTP_PUBLICHOST | Publicly accessible address of server | localhost:3000 |
 | CONFIG_JWT_ALGORITHMS | List of algorithms to assign for JWT signing | HS256 |
 | CONFIG_JWT_AUDIENCE | Target audience for JWTs | http://localhost:4000 |
 | CONFIG_JWT_EXPIRESIN | Expiration duration for JWTs | 3d |
