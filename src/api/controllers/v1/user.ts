@@ -31,19 +31,23 @@ export function getUserList(request: Hapi.Request, reply: LegacyReply): LegacyRe
             order: [[fn('UPPER', col('nickname')), 'ASC']]
         };
 
+        const whereConditions: any = {};
+
         if (!_.isNil(request.query.search)) {
-            queryOptions.where = {
-                nickname: {
-                    $iLike: `%${request.query.search}%`
-                }
+            whereConditions.nickname = {
+                $iLike: `%${request.query.search}%`
             };
+        }
 
-            if (!_.isNil(request.query.communityUid)) {
-                queryOptions.where = {
-                    communityUid: request.query.communityUid
-                };
-            }
+        if (!_.isNil(request.query.communityUid)) {
+            whereConditions.communityUid = request.query.communityUid;
+        }
 
+        if (!_.isEmpty(whereConditions)) {
+            queryOptions.where = whereConditions;
+        }
+
+        if (!_.isNil(request.query.search)) {
             log.debug({ function: 'getUserList', queryOptions, userUid }, 'Including search parameter in query options');
         }
 
