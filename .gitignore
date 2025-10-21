@@ -69,3 +69,13 @@ k8s/credentials.json
 k8s/postgres-secrets.yaml
 k8s/traefik-cloudflare.yaml
 k8s/traefik-config.yaml
+
+# Yarn (Berry)
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+.yarn/install-state.gz
