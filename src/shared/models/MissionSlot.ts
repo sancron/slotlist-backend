@@ -177,7 +177,7 @@ export class MissionSlot extends Model {
 
     /**
      * Indicates whether the slot is a blocked slot (true, no users can register) or a regular one (false)
-     * Blocked slots can be used by mission creators to manually "assign" slots to community or users that choose not to use slotlist.info
+     * Blocked slots can be used by mission creators to manually "assign" slots to community or users that choose not to use slotlist.insidearma.de
      *
      * @type {boolean}
      * @memberof MissionSlot

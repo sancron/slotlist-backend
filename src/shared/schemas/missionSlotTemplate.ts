@@ -19,7 +19,7 @@ export const missionSlotTemplateSchema = Joi.object().keys({
 
 export const missionSlotTemplateSlotSchema = Joi.object().keys({
     blocked: Joi.bool().required().description('Indicates whether the slot is a blocked slot (true, no users can register) or a regular one (false). Blocked slots can be ' +
-        'used by mission creators to manually "assign" slots to community or users that choose not to use slotlist.info').example(false),
+        'used by mission creators to manually "assign" slots to community or users that choose not to use slotlist.insidearma.de').example(false),
     description: Joi.string().allow(null).min(1).optional().description('Optional short description of the slot').example('Leads Platoon Luchs and coordinates logistics'),
     detailedDescription: Joi.string().allow(null).min(1).default(null).optional().description('Detailed, optional description of the mission slot, further explaining ' +
         'the responsibilities and the selected role').example('<div>Actually know what they are doing!</div>'),

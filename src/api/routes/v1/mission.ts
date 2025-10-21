@@ -1396,7 +1396,7 @@ export const mission = [
                     reserve: Joi.bool().required().description('Indicates whether the slot is a reserve slot (true, will only be assigned if all other slots have been ' +
                         'filled) or a regular one (false)').example(false),
                     blocked: Joi.bool().required().description('Indicates whether the slot is a blocked slot (true, no users can register) or a regular one (false). ' +
-                        'Blocked slots can be used by mission creators to manually "assign" slots to community or users that choose not to use slotlist.info').example(false),
+                        'Blocked slots can be used by mission creators to manually "assign" slots to community or users that choose not to use slotlist.insidearma.de').example(false),
                     autoAssignable: Joi.bool().required().description('Indicates whether the slot is auto-assignable. Auto-assignable slots do not require confirmation by a ' +
                         'mission editor, but are automatically assigned to the first registering user (who would have thought, what a good name choice!)').example(false),
                     requiredDLCs: Joi.array().items(Joi.string().equal(MISSION_REQUIRED_DLCS).optional()).required().description('List of DLCs required to fulfil the duties ' +
@@ -1477,7 +1477,7 @@ export const mission = [
                     reserve: Joi.bool().optional().description('New indicator whether the slot is a reserve slot (true, will only be assigned if all other slots have been ' +
                         'filled) or a regular one (false)').example(false),
                     blocked: Joi.bool().optional().description('New indicator whether the slot is a blocked slot (true, no users can register) or a regular one (false). ' +
-                        'Blocked slots can be used by mission creators to manually "assign" slots to community or users that choose not to use slotlist.info').example(false),
+                        'Blocked slots can be used by mission creators to manually "assign" slots to community or users that choose not to use slotlist.insidearma.de').example(false),
                     autoAssignable: Joi.bool().optional().description('New indicator whether the slot is auto-assignable. Auto-assignable slots do not require confirmation by a ' +
                         'mission editor, but are automatically assigned to the first registering user (who would have thought, what a good name choice!)').example(false),
                     requiredDLCs: Joi.array().items(Joi.string().equal(MISSION_REQUIRED_DLCS).optional()).optional().description('New list of DLCs required to fulfil the duties ' +
