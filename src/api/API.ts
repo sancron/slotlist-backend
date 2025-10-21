@@ -70,13 +70,13 @@ export class API {
             plugin: HapiSwagger,
             options: {
                 info: {
-                    title: 'slotlist.info API Documentation',
+                    title: 'slotlist.insidearma.de API Documentation',
                     version: pjson.version,
                     contact: {
                         name: 'Nick \'MorpheusXAUT\' Mueller',
                         email: 'nick@slotlist.info'
                     },
-                    termsOfService: 'https://slotlist.info/#/about',
+                    termsOfService: 'https://slotlist.insidearma.de/#/about',
                     license: {
                         name: 'MIT',
                         url: 'https://github.com/MorpheusXAUT/slotlist-backend/blob/master/LICENSE'

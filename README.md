@@ -1,10 +1,12 @@
 # slotlist-backend
-Backend of [slotlist.info](https://slotlist.info), an ArmA 3 mission planning and slotlist management tool.  
+Backend of [slotlist.insidearma.de](https://slotlist.insidearma.de), an ArmA 3 mission planning and slotlist management tool.
 The corresponding frontend implementation of this project can be found at [slotlist-frontend](https://github.com/MorpheusXAUT/slotlist-frontend).
 
-## 📢 Project Status: Discontinued
+## 📢 Project Status
 
-After nearly a decade of serving the ArmA community, slotlist.info will be shut down on 31 December 2025. The project is no longer actively maintained due to time and resource constraints, and its underlying technology stack has become outdated. This repository remains available as an archive for historical and reference purposes. Thank you to everyone who contributed and supported the project over the years!
+The public service previously available at slotlist.info is being sunset, but the software remains available for private
+deployments. This repository has been updated to target the new instance operated at `slotlist.insidearma.de` and now focuses on
+container-based deployments via Portainer and NGINX Proxy Manager.
 
 ## Installation
 ### Requirements
@@ -17,12 +19,13 @@ After nearly a decade of serving the ArmA community, slotlist.info will be shut 
 * g++ *(build only)*
 * make *(build only)*
 * postgresql-dev *(build only)*
-* python2 *(build only)*
+* python3 *(build only)*
 
 #### Optional dependencies
 * [Docker](https://www.docker.com/) 17.12 and up
 * [Docker Compose](https://docs.docker.com/compose/) 1.14 and up
-* [Kubernetes](https://kubernetes.io/) 1.7 and up
+* [Portainer](https://www.portainer.io/) (for production deployments)
+* [NGINX Proxy Manager](https://nginxproxymanager.com/) (for HTTPS offloading)
 
 ### Setup
 #### Install and transpile TypeScript
@@ -43,9 +46,11 @@ $ yarn cache clean
 ```
 
 #### Adjust required environment variables and config
-Configuration will be parsed from environment variables, all of which can be found in the `dev.env` file as well as the [Configuration](docs/Configuration.md) markdown file in the `docs/` folder of this repository.
+Configuration will be parsed from environment variables, all of which can be found in the `dev.env` file as well as the
+[Configuration](docs/Configuration.md) markdown file in the `docs/` folder of this repository.
 
-Beside `dev.env`, you should create a `.env` file in the root of your repository - it will automatically be ignored by git. Use this file to overwrite the default config values or provide missing ones; you will at very least have to provide:
+Beside `dev.env`, you should create a `.env` file in the root of your repository - it will automatically be ignored by git. Use
+this file to overwrite the default config values or provide missing ones; you will at very least have to provide:
 * CONFIG_STEAM_API_SECRET
 * CONFIG_STORAGE_BUCKETNAME
 * CONFIG_STORAGE_PROJECTID
@@ -56,8 +61,9 @@ Beside `dev.env`, you should create a `.env` file in the root of your repository
 If you do not use Docker Compose to run slotlist-backend, make sure all environment variables are set up as listed in `dev.env`.
 
 ## Usage
-slotlist-backend can either be run "natively" or utilising Docker and Docker Compose.  
-When using the Docker Compose startup, a PostgreSQL instance will automatically be started as well, removing the need to provide a separate database setup.
+slotlist-backend can either be run "natively" or utilising Docker and Docker Compose. When using the development Docker
+compose file, a PostgreSQL instance will automatically be started as well, removing the need to provide a separate database
+setup.
 
 #### Start with bunyan formatting
 ```sh
@@ -69,38 +75,55 @@ $ yarn start
 $ yarn start:docker
 ```
 
-#### Start using Docker
+#### Start using Docker for local development
 ```sh
-$ docker-compose up
+$ docker compose -f docker-compose.dev.yml up
 ```
 
 ## Development
-The easiest way to start developing is by using the Docker setup as described above. Running `docker-compose up` automatically mounts the transpiled `dist/` folder to the Docker container and watches for file changes - you can thus run a build task in your IDE and the backend container will automatically restart with the latest changes.
+The easiest way to start developing is by using the Docker setup described above. Running `docker compose -f docker-compose.dev.yml up` automatically mounts the transpiled `dist/` folder to the Docker container and watches for file
+changes - you can thus run a build task in your IDE and the backend container will automatically restart with the latest
+changes.
 
-Unfortunately, there is no automated unit tests as of now (2018-01-09), however I plan on adding some mocha tests in the future, removing the need to test all new and existing functionality by hand.
+Unfortunately, there are no automated unit tests as of now (2018-01-09), however I plan on adding some mocha tests in the
+future, removing the need to test all new and existing functionality by hand.
 
 ## Deployment
-slotlist-backend was designed to be deployed to a Kubernetes cluster running on the [Google Cloud Platform](https://cloud.google.com/). The `k8s/` folder contains the configuration files required to create and run all backend as well as other miscellaneous service and infrastructure. A `cloudbuild.yaml` file for automatic Docker image builds is provided in the repository root as well.
+slotlist-backend is now intended to be deployed through Portainer and exposed via NGINX Proxy Manager. The
+`deployment/portainer` folder contains the environment file and documentation required for that workflow. A typical
+installation involves the following steps:
 
-Generally speaking, slotlist-backend can be deployed anywhere running Node 22.20.0 or up and only depends on a PostgreSQL database.
+1. Review and customise `deployment/portainer/production.env`.
+2. Ensure a Docker network shared with your NGINX Proxy Manager instance exists (the provided configuration expects
+   `npm_proxy`).
+3. Deploy the stack in Portainer using the root `docker-compose.yml` file.
+4. Configure a Proxy Host in NGINX Proxy Manager for `slotlist.insidearma.de` that forwards traffic to the
+   `slotlist-backend` service on port 3000.
 
-Since no direct SSL support is integrated, we advise you to run the backend instance behind a reverse proxy such as [nginx](https://www.nginx.com/) or [traefik](https://traefik.io/) and handle SSL offloading there. [Let's Encrypt](https://letsencrypt.org/) provides excellent, free SSL certificates that are easy to integrate into your existing hosting, so there's no reason why you should run your site over plain HTTP!
-
-Please be advised that some configuration values might need modifications should you plan to run your own instance since they have been tailored to work for [slotlist.info](https://slotlist.info)'s main instance. This is especially relevant for the CSP/HPKP headers set - failing to set these properly will result in problems loading your site.
+Since no direct SSL support is integrated, HTTPS termination is handled entirely by NGINX Proxy Manager.
 
 ## Contributing
-Pull requests are more than welcome - I am grateful for any help, no matter how small it is! For major changes, please open an issue first so proposed modifications can be discussed first.
+Pull requests are more than welcome - I am grateful for any help, no matter how small it is! For major changes, please open an
+issue first so proposed modifications can be discussed.
 
-All pull requests should be submitted to the `dev` branch - once a feature is fully implemented and tested, it will be merged to the `master` branch and deployed.  
+All pull requests should be submitted to the `dev` branch - once a feature is fully implemented and tested, it will be merged to
+the `master` branch and deployed.
 Attributions will be provided in the [Contributors](docs/Contributors.md) file inside the `docs/` folder as appropriate.
 
-In additional to development work for the backend or frontend projects, [slotlist.info](https://slotlist.info) also needs your help in providing accurate and complete translations. We are utilising [OneSky](https://morpheusxaut.oneskyapp.com/collaboration/project/133324) to crowd-source our translations and provide an easy interface to manage required strings. Feel free to contribute any translations or suggest a new language by opening an issue on the [slotlist-frontend repository](https://github.com/MorpheusXAUT/slotlist-frontend/issues).
+In additional to development work for the backend or frontend projects, [slotlist.insidearma.de](https://slotlist.insidearma.de)
+also needs your help in providing accurate and complete translations. We are utilising
+[OneSky](https://morpheusxaut.oneskyapp.com/collaboration/project/133324) to crowd-source our translations and provide an easy
+interface to manage required strings. Feel free to contribute any translations or suggest a new language by opening an issue on
+the [slotlist-frontend repository](https://github.com/MorpheusXAUT/slotlist-frontend/issues).
 
 ## Versioning
-slotlist-backend uses [Semantic Versioning](https://semver.org/) for releases, every deployment will be tagged with a new, appropriate version - old releases can be found on GitHub's [release tab](https://github.com/MorpheusXAUT/slotlist-backend/releases).
+slotlist-backend uses [Semantic Versioning](https://semver.org/) for releases, every deployment will be tagged with a new,
+appropriate version - old releases can be found on GitHub's [release tab](https://github.com/MorpheusXAUT/slotlist-backend/releases).
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
 
 ## See Also
-[slotlist-frontend](https://github.com/MorpheusXAUT/slotlist-frontend), the frontend portion of [slotlist.info](https://slotlist.info), written in Vue.js
+[slotlist-frontend](https://github.com/MorpheusXAUT/slotlist-frontend), the frontend portion of
+[slotlist.insidearma.de](https://slotlist.insidearma.de), written in Vue.js
+

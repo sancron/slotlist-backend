@@ -33,12 +33,15 @@ All configuration is handled via environment variables, a full list can be found
 | CONFIG_STEAM_API_SECRET | API secret for Steam OpenID |   |
 | CONFIG_STORAGE_BUCKETNAME | Name of GCP storage bucket |   |
 | CONFIG_STORAGE_PROJECTID | Name/ID of GCP project |   |
-| CONFIG_STORAGE_KEYFILENAME | Path to GCP credentials file | /credentials/credentials.json |
+| CONFIG_STORAGE_KEYFILENAME | Path to GCP credentials file | (empty) |
 | DEFAULT_ADMIN_UID | UUIDv4 of default admin user |   |
 | DEFAULT_ADMIN_STEAMID | Steam ID of default admin user |   |
 | DEFAULT_ADMIN_NICKNAME | Nickname of default admin user |   |
 | NODE_ENV | Environment for app to run in | development |
 | SENTRY_DSN | DSN for Sentry reporting |   |
+
+The repository ships with `deployment/portainer/production.env`, which contains sane defaults for running the backend at
+`https://slotlist.insidearma.de` behind NGINX Proxy Manager. Adjust the values in that file before deploying to production.
 
 ### Logging configuration
 slotlist-backend uses [bunyan](https://github.com/trentm/node-bunyan) to generate structured logs, which can easily be fed to e.g. elasticsearch or any other log processing and parsing software. Thus, all logs will be in JSON and will be printed to `stdout` by default.  
