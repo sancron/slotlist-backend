@@ -53,11 +53,13 @@
   },
   "devDependencies": {
     "@types/bunyan": "^1.8.11",
+    "@types/chai": "^5.2.3",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/lodash": "^4.17.20",
     "@types/mocha": "^10.0.10",
     "@types/node": "^24.9.1",
     "@types/pg": "^8.15.5",
+    "chai": "^6.2.0",
     "mocha": "^11.7.4",
     "nodemon": "^3.1.10",
     "ts-node": "^10.9.2",

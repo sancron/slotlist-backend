@@ -10,6 +10,8 @@ import * as Hapi from '@hapi/hapi';
 import { describe, it } from 'mocha';
 import Module from 'module';
 
+import './polyfills.spec';
+
 import { LegacyReply } from '../api/legacyAdapter';
 
 type GetUserList = typeof import('../api/controllers/v1/user').getUserList;
