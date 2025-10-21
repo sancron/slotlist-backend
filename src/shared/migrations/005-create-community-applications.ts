@@ -15,7 +15,7 @@ module.exports = {
                 primaryKey: true
             },
             status: {
-                type: DataTypes.ENUM(COMMUNITY_APPLICATION_STATUSES),
+                type: DataTypes.ENUM(...COMMUNITY_APPLICATION_STATUSES),
                 allowNull: false,
                 defaultValue: COMMUNITY_APPLICATION_STATUS_SUBMITTED
             },

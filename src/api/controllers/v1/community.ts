@@ -1,10 +1,10 @@
-import * as Boom from 'boom';
-import * as Hapi from 'hapi';
+import Boom from '@hapi/boom';
+import * as Hapi from '@hapi/hapi';
 import * as _ from 'lodash';
-import * as moment from 'moment';
+import moment from 'moment';
 import { col, fn, literal, Transaction } from 'sequelize';
-import * as urlJoin from 'url-join';
-import * as uuid from 'uuid';
+import urlJoin from 'url-join';
+import { v4 as uuidv4 } from 'uuid';
 
 import { Community } from '../../../shared/models/Community';
 import {
@@ -23,13 +23,14 @@ import { log as logger } from '../../../shared/util/log';
 import { sequelize } from '../../../shared/util/sequelize';
 // tslint:disable-next-line:import-name
 import slugger from '../../../shared/util/slug';
+import { LegacyReply, LegacyResponse } from '../../legacyAdapter';
 const log = logger.child({ route: 'community', routeVersion: 'v1' });
 
 /**
  * Handlers for V1 of community endpoints
  */
 
-export function getCommunityList(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function getCommunityList(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const queryOptions: any = {
             limit: request.query.limit,
@@ -75,7 +76,7 @@ export function getCommunityList(request: Hapi.Request, reply: Hapi.ReplyWithCon
     })());
 }
 
-export function isSlugAvailable(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function isSlugAvailable(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.query.slug;
         if (slug === 'slugAvailable') {
@@ -90,7 +91,7 @@ export function isSlugAvailable(request: Hapi.Request, reply: Hapi.ReplyWithCont
     })());
 }
 
-export function createCommunity(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function createCommunity(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const payload = request.payload;
         const userUid = request.auth.credentials.user.uid;
@@ -104,7 +105,7 @@ export function createCommunity(request: Hapi.Request, reply: Hapi.ReplyWithCont
         // Make sure payload is properly "slugged"
         payload.slug = slugger(payload.slug);
 
-        const user = await User.findById(userUid);
+        const user = await User.findByPk(userUid);
         if (_.isNil(user)) {
             log.debug({ function: 'createCommunity', payload, userUid }, 'User from decoded JWT not found');
             throw Boom.unauthorized('Token user not found');
@@ -172,7 +173,7 @@ export function createCommunity(request: Hapi.Request, reply: Hapi.ReplyWithCont
     })());
 }
 
-export function getCommunityDetails(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function getCommunityDetails(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.communitySlug;
         let userUid: string | null = null;
@@ -227,7 +228,7 @@ export function getCommunityDetails(request: Hapi.Request, reply: Hapi.ReplyWith
     })());
 }
 
-export function updateCommunity(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function updateCommunity(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.communitySlug;
         const payload = request.payload;
@@ -273,12 +274,12 @@ export function updateCommunity(request: Hapi.Request, reply: Hapi.ReplyWithCont
     })());
 }
 
-export function deleteCommunity(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function deleteCommunity(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.communitySlug;
         const userUid = request.auth.credentials.user.uid;
 
-        const user = await User.findById(userUid);
+        const user = await User.findByPk(userUid);
         if (_.isNil(user)) {
             log.debug({ function: 'deleteCommunity', slug, userUid }, 'User from decoded JWT not found');
             throw Boom.unauthorized('Token user not found');
@@ -317,7 +318,7 @@ export function deleteCommunity(request: Hapi.Request, reply: Hapi.ReplyWithCont
     })());
 }
 
-export function setCommunityLogo(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function setCommunityLogo(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.communitySlug;
         const userUid = request.auth.credentials.user.uid;
@@ -356,7 +357,7 @@ export function setCommunityLogo(request: Hapi.Request, reply: Hapi.ReplyWithCon
         }
 
         const imageFolder = urlJoin(COMMUNITY_LOGO_PATH, slug);
-        const imageName = uuid.v4();
+        const imageName = uuidv4();
 
         const matches = ImageService.parseDataUrl(image);
         if (_.isNil(matches)) {
@@ -384,7 +385,7 @@ export function setCommunityLogo(request: Hapi.Request, reply: Hapi.ReplyWithCon
     })());
 }
 
-export function deleteCommunityLogo(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function deleteCommunityLogo(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.communitySlug;
         const userUid = request.auth.credentials.user.uid;
@@ -426,7 +427,7 @@ export function deleteCommunityLogo(request: Hapi.Request, reply: Hapi.ReplyWith
     })());
 }
 
-export function getCommunityApplicationList(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function getCommunityApplicationList(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.communitySlug;
         const userUid = request.auth.credentials.user.uid;
@@ -480,7 +481,7 @@ export function getCommunityApplicationList(request: Hapi.Request, reply: Hapi.R
     })());
 }
 
-export function createCommunityApplication(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function createCommunityApplication(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.communitySlug;
         const userUid = request.auth.credentials.user.uid;
@@ -534,7 +535,7 @@ export function createCommunityApplication(request: Hapi.Request, reply: Hapi.Re
     })());
 }
 
-export function getCommunityApplicationStatus(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function getCommunityApplicationStatus(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.communitySlug;
         const userUid = request.auth.credentials.user.uid;
@@ -560,7 +561,7 @@ export function getCommunityApplicationStatus(request: Hapi.Request, reply: Hapi
     })());
 }
 
-export function updateCommunityApplication(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function updateCommunityApplication(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.communitySlug;
         const applicationUid = request.params.applicationUid;
@@ -633,7 +634,7 @@ export function updateCommunityApplication(request: Hapi.Request, reply: Hapi.Re
     })());
 }
 
-export function deleteCommunityApplication(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function deleteCommunityApplication(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.communitySlug;
         const applicationUid = request.params.applicationUid;
@@ -692,7 +693,7 @@ export function deleteCommunityApplication(request: Hapi.Request, reply: Hapi.Re
     })());
 }
 
-export function removeCommunityMember(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function removeCommunityMember(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.communitySlug;
         const memberUid = request.params.memberUid;
@@ -742,7 +743,7 @@ export function removeCommunityMember(request: Hapi.Request, reply: Hapi.ReplyWi
     })());
 }
 
-export function getCommunityMemberList(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function getCommunityMemberList(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.communitySlug;
         const queryOptions: any = {
@@ -779,7 +780,7 @@ export function getCommunityMemberList(request: Hapi.Request, reply: Hapi.ReplyW
     })());
 }
 
-export function getCommunityMissionList(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function getCommunityMissionList(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.communitySlug;
         let userUid: string | null = null;
@@ -879,7 +880,7 @@ export function getCommunityMissionList(request: Hapi.Request, reply: Hapi.Reply
     })());
 }
 
-export function getCommunityPermissionList(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function getCommunityPermissionList(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.communitySlug;
         const userUid = request.auth.credentials.user.uid;
@@ -902,7 +903,7 @@ export function getCommunityPermissionList(request: Hapi.Request, reply: Hapi.Re
             ]
         };
 
-        const user = await User.findById(userUid);
+        const user = await User.findByPk(userUid);
         if (_.isNil(user)) {
             log.debug({ function: 'getCommunityPermissionList', slug, userUid }, 'User from decoded JWT not found');
             throw Boom.unauthorized('Token user not found');
@@ -933,7 +934,7 @@ export function getCommunityPermissionList(request: Hapi.Request, reply: Hapi.Re
     })());
 }
 
-export function createCommunityPermission(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function createCommunityPermission(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.communitySlug;
         const payload = request.payload;
@@ -989,7 +990,7 @@ export function createCommunityPermission(request: Hapi.Request, reply: Hapi.Rep
     })());
 }
 
-export function deleteCommunityPermission(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function deleteCommunityPermission(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.communitySlug;
         const permissionUid = request.params.permissionUid;
@@ -1037,7 +1038,7 @@ export function deleteCommunityPermission(request: Hapi.Request, reply: Hapi.Rep
     })());
 }
 
-export function getCommunityRepositories(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function getCommunityRepositories(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.communitySlug;
         const userUid = request.auth.credentials.user.uid;
@@ -1071,7 +1072,7 @@ export function getCommunityRepositories(request: Hapi.Request, reply: Hapi.Repl
     })());
 }
 
-export function getCommunityServers(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function getCommunityServers(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.communitySlug;
         const userUid = request.auth.credentials.user.uid;

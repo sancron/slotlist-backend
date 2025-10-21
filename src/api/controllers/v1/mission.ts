@@ -1,10 +1,10 @@
-import * as Boom from 'boom';
-import * as Hapi from 'hapi';
+import Boom from '@hapi/boom';
+import * as Hapi from '@hapi/hapi';
 import * as _ from 'lodash';
-import * as moment from 'moment';
+import moment from 'moment';
 import { col, fn, literal, Transaction } from 'sequelize';
-import * as urlJoin from 'url-join';
-import * as uuid from 'uuid';
+import urlJoin from 'url-join';
+import { v4 as uuidv4 } from 'uuid';
 
 import { Community } from '../../../shared/models/Community';
 import { Mission, MISSION_VISIBILITY_PRIVATE } from '../../../shared/models/Mission';
@@ -21,13 +21,14 @@ import { log as logger } from '../../../shared/util/log';
 import { sequelize } from '../../../shared/util/sequelize';
 // tslint:disable-next-line:import-name
 import slugger from '../../../shared/util/slug';
+import { LegacyReply, LegacyResponse } from '../../legacyAdapter';
 const log = logger.child({ route: 'mission', routeVersion: 'v1' });
 
 /**
  * Handlers for V1 of mission endpoints
  */
 
-export function getMissionList(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function getMissionList(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     // tslint:disable-next-line:max-func-body-length
     return reply((async () => {
         let userUid: string | null = null;
@@ -181,7 +182,7 @@ export function getMissionList(request: Hapi.Request, reply: Hapi.ReplyWithConti
     })());
 }
 
-export function isSlugAvailable(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function isSlugAvailable(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.query.slug;
         if (slug === 'slugAvailable') {
@@ -196,7 +197,7 @@ export function isSlugAvailable(request: Hapi.Request, reply: Hapi.ReplyWithCont
     })());
 }
 
-export function createMission(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function createMission(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const payload = request.payload;
         const userUid = request.auth.credentials.user.uid;
@@ -210,7 +211,7 @@ export function createMission(request: Hapi.Request, reply: Hapi.ReplyWithContin
         // Make sure payload is properly "slugged"
         payload.slug = slugger(payload.slug);
 
-        const user = await User.findById(userUid, { include: [{ model: Community, as: 'community' }] });
+        const user = await User.findByPk(userUid, { include: [{ model: Community, as: 'community' }] });
         if (_.isNil(user)) {
             log.debug({ function: 'createMission', payload, userUid }, 'User from decoded JWT not found');
             throw Boom.unauthorized('Token user not found');
@@ -281,7 +282,7 @@ export function createMission(request: Hapi.Request, reply: Hapi.ReplyWithContin
     })());
 }
 
-export function getMissionDetails(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function getMissionDetails(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.missionSlug;
         let userUid: string | null = null;
@@ -370,7 +371,7 @@ export function getMissionDetails(request: Hapi.Request, reply: Hapi.ReplyWithCo
     })());
 }
 
-export function updateMission(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function updateMission(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.missionSlug;
         const payload = request.payload;
@@ -458,12 +459,12 @@ export function updateMission(request: Hapi.Request, reply: Hapi.ReplyWithContin
     })());
 }
 
-export function deleteMission(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function deleteMission(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.missionSlug;
         const userUid = request.auth.credentials.user.uid;
 
-        const user = await User.findById(userUid);
+        const user = await User.findByPk(userUid);
         if (_.isNil(user)) {
             log.debug({ function: 'deleteMission', slug, userUid }, 'User from decoded JWT not found');
             throw Boom.unauthorized('Token user not found');
@@ -503,7 +504,7 @@ export function deleteMission(request: Hapi.Request, reply: Hapi.ReplyWithContin
     })());
 }
 
-export function getMissionAccessList(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function getMissionAccessList(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.missionSlug;
         const userUid = request.auth.credentials.user.uid;
@@ -529,7 +530,7 @@ export function getMissionAccessList(request: Hapi.Request, reply: Hapi.ReplyWit
             ]
         };
 
-        const user = await User.findById(userUid);
+        const user = await User.findByPk(userUid);
         if (_.isNil(user)) {
             log.debug({ function: 'getMissionAccessList', slug, userUid }, 'User from decoded JWT not found');
             throw Boom.unauthorized('Token user not found');
@@ -564,7 +565,7 @@ export function getMissionAccessList(request: Hapi.Request, reply: Hapi.ReplyWit
     })());
 }
 
-export function createMissionAccess(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function createMissionAccess(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.missionSlug;
         const payload = request.payload;
@@ -578,7 +579,7 @@ export function createMissionAccess(request: Hapi.Request, reply: Hapi.ReplyWith
 
         let targetCommunity: Community | null = null;
         if (!_.isNil(payload.communityUid)) {
-            targetCommunity = await Community.findById(payload.communityUid, { attributes: ['uid'] });
+            targetCommunity = await Community.findByPk(payload.communityUid, { attributes: ['uid'] });
             if (_.isNil(targetCommunity)) {
                 log.debug({ function: 'createMissionAccess', slug, payload, userUid, missionUid: mission.uid }, 'Community with given UID not found for mission access');
                 throw Boom.notFound('Community not found');
@@ -587,7 +588,7 @@ export function createMissionAccess(request: Hapi.Request, reply: Hapi.ReplyWith
 
         let targetUser: User | null = null;
         if (!_.isNil(payload.userUid)) {
-            targetUser = await User.findById(payload.userUid, { attributes: ['uid'] });
+            targetUser = await User.findByPk(payload.userUid, { attributes: ['uid'] });
             if (_.isNil(targetUser)) {
                 log.debug({ function: 'createMissionAccess', slug, payload, userUid, missionUid: mission.uid }, 'User with given UID not found for mission access');
                 throw Boom.notFound('User not found');
@@ -623,7 +624,7 @@ export function createMissionAccess(request: Hapi.Request, reply: Hapi.ReplyWith
     })());
 }
 
-export function deleteMissionAccess(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function deleteMissionAccess(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.missionSlug;
         const missionAccessUid = request.params.missionAccessUid;
@@ -653,7 +654,7 @@ export function deleteMissionAccess(request: Hapi.Request, reply: Hapi.ReplyWith
     })());
 }
 
-export function setMissionBannerImage(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function setMissionBannerImage(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.missionSlug;
         const userUid = request.auth.credentials.user.uid;
@@ -685,7 +686,7 @@ export function setMissionBannerImage(request: Hapi.Request, reply: Hapi.ReplyWi
         }
 
         const imageFolder = urlJoin(MISSION_IMAGE_PATH, slug);
-        const imageName = uuid.v4();
+        const imageName = uuidv4();
 
         const matches = ImageService.parseDataUrl(image);
         if (_.isNil(matches)) {
@@ -713,7 +714,7 @@ export function setMissionBannerImage(request: Hapi.Request, reply: Hapi.ReplyWi
     })());
 }
 
-export function deleteMissionBannerImage(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function deleteMissionBannerImage(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.missionSlug;
         const userUid = request.auth.credentials.user.uid;
@@ -755,7 +756,7 @@ export function deleteMissionBannerImage(request: Hapi.Request, reply: Hapi.Repl
     })());
 }
 
-export function duplicateMission(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function duplicateMission(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     // tslint:disable-next-line:max-func-body-length
     return reply((async () => {
         const slug = request.params.missionSlug;
@@ -775,7 +776,7 @@ export function duplicateMission(request: Hapi.Request, reply: Hapi.ReplyWithCon
         // Make sure payload is properly "slugged"
         payload.slug = slugger(payload.slug);
 
-        const user = await User.findById(userUid, { include: [{ model: Community, as: 'community' }] });
+        const user = await User.findByPk(userUid, { include: [{ model: Community, as: 'community' }] });
         if (_.isNil(user)) {
             log.debug({ function: 'duplicateMission', payload, userUid }, 'User from decoded JWT not found');
             throw Boom.unauthorized('Token user not found');
@@ -976,7 +977,7 @@ export function duplicateMission(request: Hapi.Request, reply: Hapi.ReplyWithCon
     })());
 }
 
-export function getMissionPermissionList(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function getMissionPermissionList(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.missionSlug;
         const userUid = request.auth.credentials.user.uid;
@@ -999,7 +1000,7 @@ export function getMissionPermissionList(request: Hapi.Request, reply: Hapi.Repl
             ]
         };
 
-        const user = await User.findById(userUid);
+        const user = await User.findByPk(userUid);
         if (_.isNil(user)) {
             log.debug({ function: 'getMissionPermissionList', slug, userUid }, 'User from decoded JWT not found');
             throw Boom.unauthorized('Token user not found');
@@ -1030,7 +1031,7 @@ export function getMissionPermissionList(request: Hapi.Request, reply: Hapi.Repl
     })());
 }
 
-export function createMissionPermission(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function createMissionPermission(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.missionSlug;
         const payload = request.payload;
@@ -1093,7 +1094,7 @@ export function createMissionPermission(request: Hapi.Request, reply: Hapi.Reply
     })());
 }
 
-export function deleteMissionPermission(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function deleteMissionPermission(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.missionSlug;
         const permissionUid = request.params.permissionUid;
@@ -1141,7 +1142,7 @@ export function deleteMissionPermission(request: Hapi.Request, reply: Hapi.Reply
     })());
 }
 
-export function getMissionSlotList(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function getMissionSlotList(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.missionSlug;
 
@@ -1259,7 +1260,7 @@ export function getMissionSlotList(request: Hapi.Request, reply: Hapi.ReplyWithC
     })());
 }
 
-export function createMissionSlotGroup(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function createMissionSlotGroup(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.missionSlug;
         const payload = request.payload;
@@ -1308,7 +1309,7 @@ export function createMissionSlotGroup(request: Hapi.Request, reply: Hapi.ReplyW
     })());
 }
 
-export function updateMissionSlotGroup(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function updateMissionSlotGroup(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.missionSlug;
         const slotGroupUid = request.params.slotGroupUid;
@@ -1378,7 +1379,7 @@ export function updateMissionSlotGroup(request: Hapi.Request, reply: Hapi.ReplyW
     })());
 }
 
-export function deleteMissionSlotGroup(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function deleteMissionSlotGroup(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.missionSlug;
         const slotGroupUid = request.params.slotGroupUid;
@@ -1459,7 +1460,7 @@ export function deleteMissionSlotGroup(request: Hapi.Request, reply: Hapi.ReplyW
     })());
 }
 
-export function createMissionSlot(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function createMissionSlot(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.missionSlug;
         const payload = request.payload;
@@ -1532,7 +1533,7 @@ export function createMissionSlot(request: Hapi.Request, reply: Hapi.ReplyWithCo
     })());
 }
 
-export function updateMissionSlot(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function updateMissionSlot(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     // tslint:disable-next-line:max-func-body-length
     return reply((async () => {
         const slug = request.params.missionSlug;
@@ -1667,7 +1668,7 @@ export function updateMissionSlot(request: Hapi.Request, reply: Hapi.ReplyWithCo
     })());
 }
 
-export function deleteMissionSlot(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function deleteMissionSlot(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.missionSlug;
         const slotUid = request.params.slotUid;
@@ -1749,7 +1750,7 @@ export function deleteMissionSlot(request: Hapi.Request, reply: Hapi.ReplyWithCo
     })());
 }
 
-export function assignMissionSlot(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function assignMissionSlot(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     // tslint:disable-next-line:max-func-body-length
     return reply((async () => {
         const slug = request.params.missionSlug;
@@ -1781,7 +1782,7 @@ export function assignMissionSlot(request: Hapi.Request, reply: Hapi.ReplyWithCo
             throw Boom.notFound('Mission slot is blocked');
         }
 
-        const targetUser = await User.findById(targetUserUid);
+        const targetUser = await User.findByPk(targetUserUid);
         if (_.isNil(targetUser)) {
             log.debug(
                 { function: 'assignMissionSlot', slug, slotUid, userUid, targetUserUid, forceAssignment, suppressNotifications, missionUid: mission.uid },
@@ -1923,7 +1924,7 @@ export function assignMissionSlot(request: Hapi.Request, reply: Hapi.ReplyWithCo
     })());
 }
 
-export function getMissionSlotRegistrationList(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function getMissionSlotRegistrationList(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.missionSlug;
         const slotUid = request.params.slotUid;
@@ -2048,7 +2049,7 @@ export function getMissionSlotRegistrationList(request: Hapi.Request, reply: Hap
     })());
 }
 
-export function createMissionSlotRegistration(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function createMissionSlotRegistration(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     // tslint:disable-next-line:max-func-body-length
     return reply((async () => {
         const slug = request.params.missionSlug;
@@ -2226,7 +2227,7 @@ export function createMissionSlotRegistration(request: Hapi.Request, reply: Hapi
     })());
 }
 
-export function updateMissionSlotRegistration(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function updateMissionSlotRegistration(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     // tslint:disable-next-line:max-func-body-length
     return reply((async () => {
         const slug = request.params.missionSlug;
@@ -2457,7 +2458,7 @@ export function updateMissionSlotRegistration(request: Hapi.Request, reply: Hapi
     })());
 }
 
-export function deleteMissionSlotRegistration(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function deleteMissionSlotRegistration(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     // tslint:disable-next-line:max-func-body-length
     return reply((async () => {
         const slug = request.params.missionSlug;
@@ -2624,7 +2625,7 @@ export function deleteMissionSlotRegistration(request: Hapi.Request, reply: Hapi
     })());
 }
 
-export function unassignMissionSlot(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function unassignMissionSlot(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     // tslint:disable-next-line:max-func-body-length
     return reply((async () => {
         const slug = request.params.missionSlug;
@@ -2737,7 +2738,7 @@ export function unassignMissionSlot(request: Hapi.Request, reply: Hapi.ReplyWith
     })());
 }
 
-export function applyMissionSlotTemplate(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function applyMissionSlotTemplate(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     // tslint:disable-next-line:max-func-body-length
     return reply((async () => {
         const slug = request.params.missionSlug;
@@ -2940,7 +2941,7 @@ export function applyMissionSlotTemplate(request: Hapi.Request, reply: Hapi.Repl
     })());
 }
 
-export function getMissionToken(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function getMissionToken(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.missionSlug;
         const userUid: string = request.auth.credentials.user.uid;
@@ -2962,7 +2963,7 @@ export function getMissionToken(request: Hapi.Request, reply: Hapi.ReplyWithCont
     })());
 }
 
-export function generateMissionToken(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function generateMissionToken(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.missionSlug;
         const userUid: string = request.auth.credentials.user.uid;
@@ -2988,7 +2989,7 @@ export function generateMissionToken(request: Hapi.Request, reply: Hapi.ReplyWit
     })());
 }
 
-export function deleteMissionToken(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function deleteMissionToken(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slug = request.params.missionSlug;
         const userUid: string = request.auth.credentials.user.uid;

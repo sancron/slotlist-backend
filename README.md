@@ -8,7 +8,7 @@ After nearly a decade of serving the ArmA community, slotlist.info will be shut 
 
 ## Installation
 ### Requirements
-* [Node](https://nodejs.org) 8.1 and up
+* [Node](https://nodejs.org) 22.20.0 (LTS)
 * [Yarn](https://yarnpkg.com) 1.4 and up
 * [PostgreSQL](https://www.postgresql.org/) 9.6 and up
 
@@ -82,7 +82,7 @@ Unfortunately, there is no automated unit tests as of now (2018-01-09), however 
 ## Deployment
 slotlist-backend was designed to be deployed to a Kubernetes cluster running on the [Google Cloud Platform](https://cloud.google.com/). The `k8s/` folder contains the configuration files required to create and run all backend as well as other miscellaneous service and infrastructure. A `cloudbuild.yaml` file for automatic Docker image builds is provided in the repository root as well.
 
-Generally speaking, slotlist-backend can be deployed anywhere running Node 8.1 or up and only depends on a PostgreSQL database.
+Generally speaking, slotlist-backend can be deployed anywhere running Node 22.20.0 or up and only depends on a PostgreSQL database.
 
 Since no direct SSL support is integrated, we advise you to run the backend instance behind a reverse proxy such as [nginx](https://www.nginx.com/) or [traefik](https://traefik.io/) and handle SSL offloading there. [Let's Encrypt](https://letsencrypt.org/) provides excellent, free SSL certificates that are easy to integrate into your existing hosting, so there's no reason why you should run your site over plain HTTP!
 

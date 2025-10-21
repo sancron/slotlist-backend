@@ -1,4 +1,4 @@
-import * as Joi from 'joi';
+import Joi from 'joi';
 
 import { missionRepositoryInfoSchema } from './missionRepositoryInfo';
 import { missionServerInfoSchema } from './missionServerInfo';

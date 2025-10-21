@@ -83,7 +83,7 @@ export class CommunityApplication extends Model {
      * @memberof CommunityApplication
      */
     @Attribute({
-        type: DataTypes.ENUM(COMMUNITY_APPLICATION_STATUSES),
+        type: DataTypes.ENUM(...COMMUNITY_APPLICATION_STATUSES),
         allowNull: false,
         defaultValue: COMMUNITY_APPLICATION_STATUS_SUBMITTED
     })

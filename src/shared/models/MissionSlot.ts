@@ -1,4 +1,4 @@
-import * as Boom from 'boom';
+import Boom from '@hapi/boom';
 import * as _ from 'lodash';
 import {
     BelongsTo,

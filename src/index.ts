@@ -3,7 +3,7 @@ import './polyfills';
 
 import * as _ from 'lodash';
 import * as pjson from 'pjson';
-import * as Raven from 'raven';
+import * as Sentry from '@sentry/node';
 
 import { API } from './api/API';
 import { createAssociations } from './shared/models/associations';
@@ -20,14 +20,13 @@ if (!module.parent) {
     createAssociations();
 
     if (_.isString(process.env.SENTRY_DSN) && !_.isEmpty(process.env.SENTRY_DSN)) {
-        (<any>Raven).config(process.env.SENTRY_DSN, {
-            autoBreadcrumbs: true,
-            captureUnhandledRejections: true,
+        Sentry.init({
+            dsn: process.env.SENTRY_DSN,
             environment: process.env.NODE_ENV,
-            name: 'slotlist-backend',
-            parseUser: true,
-            release: pjson.version
-        }).install();
+            release: pjson.version,
+            integrations: [],
+            tracesSampleRate: 0
+        });
     }
 
     const api = new API();

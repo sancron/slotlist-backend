@@ -1,5 +1,5 @@
-import * as Boom from 'boom';
-import * as Joi from 'joi';
+import Boom from '@hapi/boom';
+import Joi from 'joi';
 import * as _ from 'lodash';
 import {
     BelongsTo,
@@ -93,7 +93,7 @@ export class Notification extends Model {
      * @memberof Notification
      */
     @Attribute({
-        type: DataTypes.ENUM(NOTIFICATION_TYPES),
+        type: DataTypes.ENUM(...NOTIFICATION_TYPES),
         allowNull: false,
         defaultValue: NOTIFICATION_TYPE_GENERIC
     })
@@ -149,9 +149,9 @@ export class Notification extends Model {
                         schema = notificationDataGenericSchema;
                 }
 
-                const validationResult = Joi.validate(val, schema);
+                const validationResult = schema.validate(val);
                 if (!_.isNil(validationResult.error)) {
-                    throw Boom.badRequest('Invalid notification data', validationResult);
+                    throw Boom.badRequest('Invalid notification data', validationResult.error);
                 }
             }
         }

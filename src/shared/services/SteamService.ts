@@ -1,5 +1,5 @@
 import axios, * as Axios from 'axios';
-import * as Boom from 'boom';
+import Boom from '@hapi/boom';
 import * as _ from 'lodash';
 // tslint:disable-next-line:no-require-imports no-var-requires
 const openid = require('openid');
@@ -94,7 +94,7 @@ export class SteamService {
 
         if (response.status !== 200) {
             log.warn({ function: 'getSteamNickname', steamId, response: _.omit(response, 'request') }, 'Received non-OK reponse status code while retrieving Steam nickname');
-            throw Boom.create(response.status, response.statusText, { steamId });
+            throw Boom.boomify(new Error(response.statusText), { statusCode: response.status, data: { steamId } });
         }
 
         if (!_.isObject(response.data.response)) {

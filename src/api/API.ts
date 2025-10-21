@@ -1,9 +1,12 @@
-import * as Boom from 'boom';
-import * as Hapi from 'hapi';
-import * as HapiAuthJWT from 'hapi-auth-jwt2';
-import * as _ from 'lodash';
-import * as moment from 'moment';
-import * as pjson from 'pjson';
+import Boom from '@hapi/boom';
+import Hapi, { Lifecycle, Request, ResponseObject, ResponseToolkit, Server } from '@hapi/hapi';
+import HapiAuthJWT from 'hapi-auth-jwt2';
+import Inert from '@hapi/inert';
+import Vision from '@hapi/vision';
+import HapiSwagger from 'hapi-swagger';
+import _ from 'lodash';
+import moment from 'moment';
+import pjson from 'pjson';
 
 import { HTTP as HTTPConfig, JWT as JWTConfig } from '../shared/config/Config';
 import { findPermission, parsePermissions } from '../shared/util/acl';
@@ -13,125 +16,58 @@ import { jwtPayloadSchema } from '../shared/schemas/auth';
 
 import { routes } from './routes/routes';
 
-/**
- * API class for handling all web requests
- *
- * @export
- * @class API
- */
 export class API {
-    private server: Hapi.Server;
-    private startedAt: moment.Moment;
+    private server: Server;
+
+    private startedAt?: moment.Moment;
+
+    private requestLogger = log.child({ hapi: true });
 
     constructor() {
-        this.server = new Hapi.Server({
-            connections: {
-                routes: {
-                    cors: true,
-                    security: {
-                        hsts: { maxAge: 31536000, includeSubdomains: true, preload: true },
-                        noOpen: true,
-                        noSniff: true,
-                        xframe: true,
-                        xss: true
-                    }
-                }
-            },
-            debug: false
-        });
-
-        this.server.connection({
-            address: HTTPConfig.address,
+        this.server = Hapi.server({
             port: HTTPConfig.port,
-            host: HTTPConfig.host
-        });
-    }
-
-    // tslint:disable
-    public async start(): Promise<void> {
-        log.info({ HTTPConfig, JWTConfig: _.omit(JWTConfig, 'secret') }, 'Starting API server');
-
-        log.debug('Registering inert plugin');
-        await this.server.register(require('inert'));
-
-        log.debug('Registering vision plugin');
-        await this.server.register(require('vision'));
-
-        log.debug('Registering good plugin');
-        await this.server.register({
-            register: require('good'),
-            options: {
-                ops: {
-                    interval: HTTPConfig.opsInterval
-                },
-                includes: {
-                    request: ['headers', 'payload'],
-                    response: ['payload']
-                },
-                reporters: {
-                    bunyan: [{
-                        module: 'good-bunyan',
-                        args: [
-                            { ops: '*', response: '*', log: '*', error: '*', request: '*' },
-                            {
-                                logger: log.child({ hapi: true }),
-                                levels: {
-                                    error: 'error',
-                                    log: 'info',
-                                    ops: 'info',
-                                    request: 'debug',
-                                    response: 'debug'
-                                },
-                                formatters: {
-                                    error: (data: any): any => {
-                                        const res: any = _.omit(data, 'config', 'labels');
-                                        res.err = res.error;
-
-                                        return [res, `ERROR --> ${data.url.path}`];
-                                    },
-                                    response: (data: any): any => {
-                                        const res: any = _.omit(data, 'config', 'labels', 'responsePayload', 'requestPayload');
-
-                                        return [res, `--> ${data.path}`];
-                                    }
-                                }
-                            }
-                        ]
-                    }]
+            host: HTTPConfig.address || HTTPConfig.host,
+            routes: {
+                cors: true,
+                security: {
+                    hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
+                    noOpen: true,
+                    noSniff: true,
+                    xframe: true,
+                    xss: 'enabled'
                 }
             }
         });
+    }
 
-        log.debug('Registering JWT auth plugin');
+    public async start(): Promise<void> {
+        log.info({ HTTPConfig, JWTConfig: _.omit(JWTConfig, 'secret') }, 'Starting API server');
+
+        await this.server.register([Inert, Vision]);
+
         await this.server.register(HapiAuthJWT);
 
         this.server.auth.strategy('jwt', 'jwt', {
-            cookieKey: false,
-            headerKey: 'authorization',
             key: JWTConfig.secret,
-            tokenType: 'JWT',
-            urlKey: false,
-            validateFunc: this.validateJWT,
             verifyOptions: {
                 algorithms: JWTConfig.algorithms,
                 audience: JWTConfig.audience,
                 issuer: JWTConfig.issuer,
                 ignoreExpiration: false
-            }
+            },
+            validate: this.validateJWT.bind(this)
         });
 
         this.server.auth.default('jwt');
 
-        this.server.ext('onPostAuth', this.checkACL);
-        this.server.ext('onRequest', this.parseRealIP);
-        this.server.ext('onPreResponse', this.setAdditionalHeaders);
+        this.server.ext('onPostAuth', this.checkACL.bind(this));
+        this.server.ext('onRequest', this.parseRealIP.bind(this));
+        this.server.ext('onPreResponse', this.setAdditionalHeaders.bind(this));
 
-        log.debug({ routeCount: routes.length }, 'Registering routes');
         this.server.route(routes);
 
-        log.debug('Registering swagger plugin');
         await this.server.register({
-            register: require('hapi-swagger'),
+            plugin: HapiSwagger,
             options: {
                 info: {
                     title: 'slotlist.info API Documentation',
@@ -152,14 +88,26 @@ export class API {
             }
         });
 
-        log.debug('Starting HTTP server');
+        this.server.events.on('response', (request: Request) => {
+            const response = request.response as ResponseObject | Boom.Boom;
+            const tags = request.route.settings.tags ?? [];
+            const logLevel: 'trace' | 'debug' = tags.includes('trace') ? 'trace' : 'debug';
+            const statusCode = (response as ResponseObject)?.statusCode ?? (response as Boom.Boom)?.output?.statusCode;
+            const message = `${request.method.toUpperCase()} ${request.path} -> ${statusCode ?? 'unknown'}`;
+            const logger = this.requestLogger as any;
+            if (typeof logger[logLevel] === 'function') {
+                logger[logLevel]({ req: request, res: response }, message);
+            } else {
+                this.requestLogger.debug({ req: request, res: response }, message);
+            }
+        });
+
         await this.server.start();
 
         this.startedAt = moment.utc();
 
         log.info({ startedAt: this.startedAt }, 'Successfully started API server');
     }
-    // tslint:enable
 
     public async stop(): Promise<void> {
         log.info('Stopping API server');
@@ -167,65 +115,62 @@ export class API {
         await this.server.stop();
 
         const stoppedAt = moment.utc();
-        const uptime = stoppedAt.diff(this.startedAt);
+        const uptime = this.startedAt ? stoppedAt.diff(this.startedAt) : 0;
 
         log.info({ startedAt: this.startedAt, stoppedAt, uptime }, 'Successfully stopped API server');
     }
 
-    private async validateJWT(decodedJWT: any, request: Hapi.Request, next: Function): Promise<void> {
+    private async validateJWT(decodedJWT: unknown, request: Request, h: ResponseToolkit): Promise<HapiAuthJWT.ValidationResult> {
         log.debug({ function: 'validateJWT', req: request, decodedJWT }, 'Validating JWT');
 
         const jwtValidationResult = jwtPayloadSchema.validate(decodedJWT);
         if (!_.isNil(jwtValidationResult.error)) {
             log.warn({ function: 'validateJWT', req: request, decodedJWT, err: jwtValidationResult.error }, 'Received invalid JWT payload');
 
-            return next(Boom.forbidden('Invalid JWT payload', { decodedJWT }), false);
+            return { isValid: false, errorMessage: 'Invalid JWT payload' };
         }
 
-        return next(null, true);
+        return { isValid: true };
     }
 
-    private async checkACL(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Promise<any> {
-        if (!_.isNil(request.route) &&
-            !_.isNil(request.route.settings) &&
-            !_.isNil(request.route.settings.plugins) &&
-            !_.isNil((<any>request.route.settings.plugins).acl) &&
-            !_.isNil((<any>request.route.settings.plugins).acl.permissions)) {
-            const aclConfig = (<any>request.route.settings.plugins).acl;
-            const permissions = _.isArray(aclConfig.permissions) ? aclConfig.permissions : [aclConfig.permissions];
+    private async checkACL(request: Request, h: ResponseToolkit): Promise<Lifecycle.ReturnValue> {
+        const routePlugins: any = request.route.settings.plugins;
+        if (routePlugins?.acl?.permissions) {
+            const aclConfig = routePlugins.acl;
+            const permissions = Array.isArray(aclConfig.permissions) ? aclConfig.permissions : [aclConfig.permissions];
             const strict = aclConfig.strict === true;
-            const credentials = request.auth.credentials;
+            const credentials = request.auth.credentials as any;
 
             log.debug({ function: 'checkACL', req: request, aclConfig, permissions, strict, credentials }, 'Checking ACL for restricted route');
 
             if (permissions.length <= 0) {
                 log.debug({ function: 'checkACL', permissions, strict, credentials }, 'Required permissions are empty, allowing');
 
-                return reply.continue();
+                return h.continue;
             }
 
-            if (request.auth.isAuthenticated === false) {
+            if (!request.auth.isAuthenticated) {
                 log.debug({ function: 'checkACL', req: request, aclConfig, permissions, strict, credentials }, 'User is not authenticated, rejecting');
 
-                return reply(Boom.unauthorized());
+                throw Boom.unauthorized();
             }
 
-            const parsedPermissions = parsePermissions(request.auth.credentials.permissions);
+            const parsedPermissions = parsePermissions(credentials.permissions);
             if (_.has(parsedPermissions, '*') || findPermission(parsedPermissions, 'admin.superadmin')) {
                 log.debug(
                     { function: 'checkACL', permissions, strict, credentials, userUid: credentials.user.uid, hasPermission: true },
                     'User has super admin permissions, allowing');
 
-                return reply.continue();
+                return h.continue;
             }
 
-            // Permissions can include route params, specified in double curley braces (e.g. {{slug}})
-            const requiredPermissions = _.map(permissions, (permission: string) => {
-                return _.reduce(request.params, (perm: string, value: string, key: string): string => { return perm.replace(`{{${key}}}`, value); }, permission);
+            const requiredPermissions = permissions.map((permission: string) => {
+                return Object.keys(request.params).reduce((perm: string, key: string) => {
+                    const value = (request.params as Record<string, string>)[key];
+                    return perm.replace(`{{${key}}}`, value);
+                }, permission);
             });
-            const foundPermissions: string[] = _.filter(requiredPermissions, (requiredPermission: string) => {
-                return findPermission(parsedPermissions, requiredPermission);
-            });
+            const foundPermissions = requiredPermissions.filter((requiredPermission: string) => findPermission(parsedPermissions, requiredPermission));
 
             const hasPermission = strict ? foundPermissions.length === requiredPermissions.length : foundPermissions.length > 0;
 
@@ -238,42 +183,40 @@ export class API {
                     { function: 'checkACL', req: request, requiredPermissions, strict, credentials, userUid: credentials.user.uid, hasPermission },
                     'User tried to access restricted route without proper permission');
 
-                return reply(Boom.forbidden());
+                throw Boom.forbidden();
             }
         }
 
-        return reply.continue();
+        return h.continue;
     }
 
-    private parseRealIP(request: Hapi.Request, reply: Hapi.ReplyWithContinue): any {
-        if (_.isString(request.headers['cf-connecting-ip']) && !_.isEmpty(request.headers['cf-connecting-ip'])) {
-            // Retrieve the client's "real" IP from the Cloudflare header if CF is used and the feature has been enabled
-            request.info.remoteAddress = request.headers['cf-connecting-ip'];
-        } else if (_.isString(request.headers['x-forwarded-for']) && !_.isEmpty(request.headers['x-forwarded-for'])) {
-            // Alternatively try to parse the `X-Forwarded-For` header, using the first address provided. If this does not exist either, the client connected directly
-            request.info.remoteAddress = request.headers['x-forwarded-for'].split(',')[0].trim();
+    private parseRealIP(request: Request, h: ResponseToolkit): Lifecycle.ReturnValue { // eslint-disable-line @typescript-eslint/require-await
+        const forwardedIp = request.headers['cf-connecting-ip'] || request.headers['x-forwarded-for'];
+        if (typeof forwardedIp === 'string' && forwardedIp.trim().length > 0) {
+            const ip = forwardedIp.includes(',') ? forwardedIp.split(',')[0].trim() : forwardedIp.trim();
+            (request.info as any).remoteAddress = ip;
         }
 
-        // Check for `X-Forwarded-Port` header separately here since `CF-Connecting-IP` does not include the port
-        if (_.isString(request.headers['x-forwarded-port']) && !_.isEmpty(request.headers['x-forwarded-port'])) {
-            request.info.remotePort = request.headers['x-forwarded-port'];
+        const forwardedPort = request.headers['x-forwarded-port'];
+        if (typeof forwardedPort === 'string' && forwardedPort.trim().length > 0) {
+            (request.info as any).remotePort = forwardedPort.trim();
         }
 
-        return reply.continue();
+        return h.continue;
     }
 
-    private setAdditionalHeaders(request: Hapi.Request, reply: Hapi.ReplyWithContinue): any {
-        const response = request.response;
-        if (!_.isNil(response) && response.isBoom && !_.isNil(response.output)) {
-            response.output.headers['Referrer-Policy'] = 'no-referrer-when-downgrade';
-            // tslint:disable-next-line:max-line-length
-            response.output.headers['Public-Key-Pins'] = 'pin-sha256="3kcNJzkUJ1RqMXJzFX4Zxux5WfETK+uL6Viq9lJNn4o="; pin-sha256="CfyancXuwYEHYRX3mmLJI3NFW6E8cydaCGS1D9wGhT4="; pin-sha256="58qRu/uxh4gFezqAcERupSkRYBlBAvfcw7mEjGPLnNU="; pin-sha256="grX4Ta9HpZx6tSHkmCrvpApTQGo67CYDnvprLg5yRME="; pin-sha256="YLh1dUR9y6Kja30RrAn7JKnbQG/uEtLMkBgFF2Fuihg="; pin-sha256="sRHdihwgkaib1P1gxX8HFszlD+7/gTfNvuAybgLPNis="; pin-sha256="cZmxAdzqR6QocykhA1KF2BUd4fSAAJBEL9pjp+XA5KY="; pin-sha256="RMmFr2hUG/lUONYDT+SrgzlBlraKipm/DJufF9m/l9U="; pin-sha256="O84tZY/nc8vz0MfbCS8bInyGHhh8jB6WP3reOtSVCm0="; pin-sha256="Ls+kEewW0AVmx+oHvP2VhHkV5mNX4AyBOnbXbY1l32w="; max-age=2592000; includeSubdomains; report-uri="https://morpheusxaut.report-uri.io/r/default/hpkp/enforce";';
-        } else if (!_.isNil(response)) {
-            response.header('Referrer-Policy', 'no-referrer-when-downgrade');
-            // tslint:disable-next-line:max-line-length
-            response.header('Public-Key-Pins', 'pin-sha256="3kcNJzkUJ1RqMXJzFX4Zxux5WfETK+uL6Viq9lJNn4o="; pin-sha256="CfyancXuwYEHYRX3mmLJI3NFW6E8cydaCGS1D9wGhT4="; pin-sha256="58qRu/uxh4gFezqAcERupSkRYBlBAvfcw7mEjGPLnNU="; pin-sha256="grX4Ta9HpZx6tSHkmCrvpApTQGo67CYDnvprLg5yRME="; pin-sha256="YLh1dUR9y6Kja30RrAn7JKnbQG/uEtLMkBgFF2Fuihg="; pin-sha256="sRHdihwgkaib1P1gxX8HFszlD+7/gTfNvuAybgLPNis="; pin-sha256="cZmxAdzqR6QocykhA1KF2BUd4fSAAJBEL9pjp+XA5KY="; pin-sha256="RMmFr2hUG/lUONYDT+SrgzlBlraKipm/DJufF9m/l9U="; pin-sha256="O84tZY/nc8vz0MfbCS8bInyGHhh8jB6WP3reOtSVCm0="; pin-sha256="Ls+kEewW0AVmx+oHvP2VhHkV5mNX4AyBOnbXbY1l32w="; max-age=2592000; includeSubdomains; report-uri="https://morpheusxaut.report-uri.io/r/default/hpkp/enforce";');
+    private setAdditionalHeaders(request: Request, h: ResponseToolkit): Lifecycle.ReturnValue {
+        const response = request.response as ResponseObject | Boom.Boom | null;
+        if (response && (response as Boom.Boom).isBoom && (response as Boom.Boom).output) {
+            (response as Boom.Boom).output.headers['Referrer-Policy'] = 'no-referrer-when-downgrade';
+            (response as Boom.Boom).output.headers['Public-Key-Pins'] = 'pin-sha256="3kcNJzkUJ1RqMXJzFX4Zxux5WfETK+uL6Viq9lJNn4o="; pin-sha256="CfyancXuwYEHYRX3mmLJI3NFW6E8cydaCGS1D9wGhT4="; pin-sha256="58qRu/uxh4gFezqAcERupSkRYBlBAvfcw7mEjGPLnNU="; pin-sha256="grX4Ta9HpZx6tSHkmCrvpApTQGo67CYDnvprLg5yRME="; pin-sha256="YLh1dUR9y6Kja30RrAn7JKnbQG/uEtLMkBgFF2Fuihg="; pin-sha256="sRHdihwgkaib1P1gxX8HFszlD+7/gTfNvuAybgLPNis="; pin-sha256="cZmxAdzqR6QocykhA1KF2BUd4fSAAJBEL9pjp+XA5KY="; pin-sha256="RMmFr2hUG/lUONYDT+SrgzlBlraKipm/DJufF9m/l9U="; pin-sha256="O84tZY/nc8vz0MfbCS8bInyGHhh8jB6WP3reOtSVCm0="; pin-sha256="Ls+kEewW0AVmx+oHvP2VhHkV5mNX4AyBOnbXbY1l32w="; max-age=2592000; includeSubdomains; report-uri="https://morpheusxaut.report-uri.io/r/default/hpkp/enforce";';
+        } else if (response && (response as ResponseObject).header) {
+            (response as ResponseObject).header('Referrer-Policy', 'no-referrer-when-downgrade');
+            (response as ResponseObject).header('Public-Key-Pins', 'pin-sha256="3kcNJzkUJ1RqMXJzFX4Zxux5WfETK+uL6Viq9lJNn4o="; pin-sha256="CfyancXuwYEHYRX3mmLJI3NFW6E8cydaCGS1D9wGhT4="; pin-sha256="58qRu/uxh4gFezqAcERupSkRYBlBAvfcw7mEjGPLnNU="; pin-sha256="grX4Ta9HpZx6tSHkmCrvpApTQGo67CYDnvprLg5yRME="; pin-sha256="YLh1dUR9y6Kja30RrAn7JKnbQG/uEtLMkBgFF2Fuihg="; pin-sha256="sRHdihwgkaib1P1gxX8HFszlD+7/gTfNvuAybgLPNis="; pin-sha256="cZmxAdzqR6QocykhA1KF2BUd4fSAAJBEL9pjp+XA5KY="; pin-sha256="RMmFr2hUG/lUONYDT+SrgzlBlraKipm/DJufF9m/l9U="; pin-sha256="O84tZY/nc8vz0MfbCS8bInyGHhh8jB6WP3reOtSVCm0="; pin-sha256="Ls+kEewW0AVmx+oHvP2VhHkV5mNX4AyBOnbXbY1l32w="; max-age=2592000; includeSubdomains; report-uri="https://morpheusxaut.report-uri.io/r/default/hpkp/enforce";');
         }
 
-        reply.continue();
+        return h.continue;
     }
 }
+
+export default API;

@@ -27,7 +27,7 @@ module.exports = {
                 defaultValue: []
             },
             visibility: {
-                type: DataTypes.ENUM(MISSION_VISIBILITIES),
+                type: DataTypes.ENUM(...MISSION_VISIBILITIES),
                 allowNull: false,
                 defaultValue: MISSION_VISIBILITY_HIDDEN
             },

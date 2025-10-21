@@ -1,8 +1,8 @@
-import * as Boom from 'boom';
+import Boom from '@hapi/boom';
 import * as _ from 'lodash';
 import { Writable } from 'stream';
-import * as urlJoin from 'url-join';
-import * as uuid from 'uuid';
+import urlJoin from 'url-join';
+import { v4 as uuidv4 } from 'uuid';
 // tslint:disable-next-line:no-require-imports no-var-requires variable-name
 const Storage = require('@google-cloud/storage');
 
@@ -94,7 +94,7 @@ export class ImageService {
             const dataUrl = matches[4];
             const imageType = matches[1];
             const imageFolder = urlJoin(MISSION_IMAGE_PATH, missionSlug);
-            const imageName = uuid.v4();
+            const imageName = uuidv4();
 
             log.debug({ function: 'parseMissionDescription', missionSlug, imageType, imageFolder, imageName }, 'Found image in mission description, processing');
             let imageUrl: string;
@@ -118,11 +118,11 @@ export class ImageService {
 
         log.debug({ function: 'parseMissionDescription', missionSlug, imageCount }, 'Finished parsing mission description');
 
-        return Promise.resolve(localDescription);
+        return localDescription;
     }
 
     public async uploadImage(imageData: any, imageName: string, imageFolder: string, imageType: string): Promise<string> {
-        return new Promise((resolve: (thenableOrResult?: string | PromiseLike<string>) => void, reject: (error?: any) => void) => {
+        return new Promise<string>((resolve, reject) => {
             log.debug({ function: 'uploadImage', imageName, imageFolder, imageType }, 'Preparing image upload');
 
             const imagePath = urlJoin(imageFolder, imageName);

@@ -1,7 +1,7 @@
-import * as Boom from 'boom';
-import * as Joi from 'joi';
+import Boom from '@hapi/boom';
+import Joi from 'joi';
 import * as _ from 'lodash';
-import * as moment from 'moment';
+import moment from 'moment';
 import {
     DataTypes,
     HasMany,
@@ -201,9 +201,9 @@ export class Community extends Model {
                     localVal = [localVal];
                 }
 
-                const validationResult = Joi.validate(localVal, Joi.array().required().items(missionServerInfoSchema.optional()));
+                const validationResult = Joi.array().required().items(missionServerInfoSchema.optional()).validate(localVal);
                 if (!_.isNil(validationResult.error)) {
-                    throw Boom.badRequest('Invalid mission server info', validationResult);
+                    throw Boom.badRequest('Invalid mission server info', validationResult.error);
                 }
             }
         }
@@ -228,9 +228,9 @@ export class Community extends Model {
                     localVal = [localVal];
                 }
 
-                const validationResult = Joi.validate(localVal, Joi.array().required().items(missionServerInfoSchema.optional()));
+                const validationResult = Joi.array().required().items(missionServerInfoSchema.optional()).validate(localVal);
                 if (!_.isNil(validationResult.error)) {
-                    throw Boom.badRequest('Invalid mission server info', validationResult);
+                    throw Boom.badRequest('Invalid mission server info', validationResult.error);
                 }
             }
         }
@@ -255,9 +255,9 @@ export class Community extends Model {
                     localVal = [localVal];
                 }
 
-                const validationResult = Joi.validate(localVal, Joi.array().required().items(missionRepositoryInfoSchema.optional()));
+                const validationResult = Joi.array().required().items(missionRepositoryInfoSchema.optional()).validate(localVal);
                 if (!_.isNil(validationResult.error)) {
-                    throw Boom.badRequest('Invalid mission repository info', validationResult);
+                    throw Boom.badRequest('Invalid mission repository info', validationResult.error);
                 }
             }
         }
@@ -468,7 +468,7 @@ export class Community extends Model {
     public async addLeader(userOrUserUid: User | string, founder: boolean = false): Promise<void> {
         let user: User;
         if (_.isString(userOrUserUid)) {
-            const u = await User.findById(userOrUserUid);
+            const u = await User.findByPk(userOrUserUid);
             if (_.isNil(u)) {
                 log.warn({ function: 'addLeader', communityUid: this.uid, userUid: userOrUserUid, founder }, 'Cannot add leader to community, user not found');
                 throw Boom.notFound('User not found', { communityUid: this.uid, userUid: userOrUserUid, founder });
@@ -497,7 +497,7 @@ export class Community extends Model {
     public async createApplicationDeletedNotifications(userOrUserUid: User | string): Promise<void> {
         let user: User;
         if (_.isString(userOrUserUid)) {
-            const u = await User.findById(userOrUserUid);
+            const u = await User.findByPk(userOrUserUid);
             if (_.isNil(u)) {
                 log.warn(
                     { function: 'createApplicationDeletedNotification', communityUid: this.uid, userUid: userOrUserUid },
@@ -551,7 +551,7 @@ export class Community extends Model {
     public async createApplicationProcessedNotification(userOrUserUid: User | string, accepted: boolean): Promise<void> {
         let user: User;
         if (_.isString(userOrUserUid)) {
-            const u = await User.findById(userOrUserUid);
+            const u = await User.findByPk(userOrUserUid);
             if (_.isNil(u)) {
                 log.warn(
                     { function: 'createApplicationProcessedNotification', communityUid: this.uid, userUid: userOrUserUid },
@@ -592,7 +592,7 @@ export class Community extends Model {
     public async createApplicationRemovedNotification(userOrUserUid: User | string): Promise<void> {
         let user: User;
         if (_.isString(userOrUserUid)) {
-            const u = await User.findById(userOrUserUid);
+            const u = await User.findByPk(userOrUserUid);
             if (_.isNil(u)) {
                 log.warn(
                     { function: 'createApplicationRemovedNotification', communityUid: this.uid, userUid: userOrUserUid },
@@ -633,7 +633,7 @@ export class Community extends Model {
     public async createApplicationSubmittedNotifications(userOrUserUid: User | string): Promise<void> {
         let user: User;
         if (_.isString(userOrUserUid)) {
-            const u = await User.findById(userOrUserUid);
+            const u = await User.findByPk(userOrUserUid);
             if (_.isNil(u)) {
                 log.warn(
                     { function: 'createApplicationSubmittedNotifications', communityUid: this.uid, userUid: userOrUserUid },
@@ -717,7 +717,7 @@ export class Community extends Model {
     public async createPermissionNotification(userOrUserUid: User | string, permission: string, granted: boolean): Promise<void> {
         let user: User;
         if (_.isString(userOrUserUid)) {
-            const u = await User.findById(userOrUserUid);
+            const u = await User.findByPk(userOrUserUid);
             if (_.isNil(u)) {
                 log.warn(
                     { function: 'createPermissionNotification', communityUid: this.uid, userUid: userOrUserUid },
@@ -794,7 +794,7 @@ export class Community extends Model {
 
         log.debug({ function: 'hasLeader', communityUid: this.uid, userUid: userUid }, 'Checking if community has leader');
 
-        const user = await User.findById(userUid, {
+        const user = await User.findByPk(userUid, {
             attributes: ['uid'],
             include: [
                 {
@@ -828,7 +828,7 @@ export class Community extends Model {
     public async removeLeader(userOrUserUid: User | string, founder: boolean = false): Promise<void> {
         let user: User;
         if (_.isString(userOrUserUid)) {
-            const u = await User.findById(userOrUserUid);
+            const u = await User.findByPk(userOrUserUid);
             if (_.isNil(u)) {
                 log.warn({ function: 'removeLeader', communityUid: this.uid, userUid: userOrUserUid, founder }, 'Cannot remove leader from community, user not found');
                 throw Boom.notFound('User not found', { communityUid: this.uid, userUid: userOrUserUid });

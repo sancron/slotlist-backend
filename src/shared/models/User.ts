@@ -1,7 +1,7 @@
-import * as Boom from 'boom';
+import Boom from '@hapi/boom';
 import * as jwt from 'jsonwebtoken';
 import * as _ from 'lodash';
-import * as moment from 'moment';
+import moment from 'moment';
 import {
     BelongsTo,
     BelongsToGetAssociationMixin,
@@ -384,12 +384,12 @@ export class User extends Model {
         };
 
         const jwtSignOptions: jwt.SignOptions = {
-            algorithm: JWTConfig.algorithms[0],
+            algorithm: JWTConfig.algorithms[0] as jwt.Algorithm,
             audience: JWTConfig.audience,
-            expiresIn: JWTConfig.expiresIn,
+            expiresIn: JWTConfig.expiresIn as jwt.SignOptions['expiresIn'],
             issuer: JWTConfig.issuer,
             subject: this.uid,
-            notBefore: moment.utc().seconds().toString()
+            notBefore: moment.utc().seconds().toString() as jwt.SignOptions['notBefore']
         };
 
         log.debug({ function: 'generateJWT', userUid: this.uid, jwtSignOptions }, 'Signing JWT for user');

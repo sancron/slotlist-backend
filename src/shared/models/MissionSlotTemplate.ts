@@ -1,5 +1,5 @@
-import * as Boom from 'boom';
-import * as Joi from 'joi';
+import Boom from '@hapi/boom';
+import Joi from 'joi';
 import * as _ from 'lodash';
 import {
     BelongsTo,
@@ -85,9 +85,9 @@ export class MissionSlotTemplate extends Model {
             validSlotGroupsAndSlots(val: any): void {
                 const slots = _.isArray(val) ? val : [val];
 
-                const validationResult = Joi.validate(slots, missionSlotTemplateSlotGroupsSchema);
+                const validationResult = missionSlotTemplateSlotGroupsSchema.validate(slots);
                 if (!_.isNil(validationResult.error)) {
-                    throw Boom.badRequest('Invalid mission slot template data', validationResult);
+                    throw Boom.badRequest('Invalid mission slot template data', validationResult.error);
                 }
             }
         }
@@ -102,7 +102,7 @@ export class MissionSlotTemplate extends Model {
      * @memberof Mission
      */
     @Attribute({
-        type: DataTypes.ENUM(MISSION_VISIBILITIES),
+        type: DataTypes.ENUM(...MISSION_VISIBILITIES),
         allowNull: false,
         defaultValue: MISSION_VISIBILITY_HIDDEN
     })

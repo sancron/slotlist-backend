@@ -1,55 +1,38 @@
-import * as path from 'path';
-import { Transaction } from 'sequelize';
-// tslint:disable-next-line: no-require-imports no-var-requires variable-name
-const Umzug = require('umzug');
+import path from 'path';
+import { Umzug, SequelizeStorage } from 'umzug';
 
 import { log as logger } from './log';
 import sequelize from './sequelize';
-const log = logger.child({ umzug: true });
 
-/**
- * Creates a new umzug instance and allows migrations to be exectuted
- */
+const log = logger.child({ umzug: true });
 
 export const umzug = new Umzug({
     migrations: {
-        params: [
-            sequelize.getQueryInterface()
-        ],
-        path: path.resolve(__dirname, '../migrations'),
-        pattern: /^\d+[\w-]+\.js$/
+        glob: path.resolve(__dirname, '../migrations/*.js')
     },
-    storage: 'sequelize',
-    storageOptions: {
-        sequelize: sequelize
+    context: sequelize.getQueryInterface(),
+    storage: new SequelizeStorage({ sequelize }),
+    logger: {
+        info: (message?: any) => log.info(message),
+        warn: (message?: any) => log.warn(message),
+        error: (message?: any) => log.error(message),
+        debug: (message?: any) => log.debug(message)
     }
 });
 
-umzug.on('migrating', (name: string, migration: any) => log.info({ migrationName: name }, 'Started migration'));
-umzug.on('migrated', (name: string, migration: any) => log.info({ migrationName: name }, 'Finished migration'));
-umzug.on('reverting', (name: string, migration: any) => log.info({ migrationName: name }, 'Started reverting migration'));
-umzug.on('reverted', (name: string, migration: any) => log.info({ migrationName: name }, 'Finished reverting migration'));
-
 export async function migrateUp(all: boolean = true): Promise<void> {
-    await sequelize.transaction(async (transaction: Transaction) => {
-        let pendingMigrations = await umzug.pending();
+    const pending = await umzug.pending();
+    if (!all && pending.length > 1) {
+        const [next] = pending;
+        await umzug.up({ migrations: [next.name] });
+        return;
+    }
 
-        if (!all && pendingMigrations.length > 1) {
-            pendingMigrations = [pendingMigrations[0]];
-        }
-
-        return Promise.each(pendingMigrations, (migration: any) => {
-            const migrationName = migration.file.split(':')[0];
-
-            return umzug.up(migrationName);
-        });
-    });
+    await umzug.up();
 }
 
-export async function migrateDown(all: boolean = true): Promise<void> {
-    await sequelize.transaction(async (transaction: Transaction) => {
-        return umzug.down();
-    });
+export async function migrateDown(): Promise<void> {
+    await umzug.down();
 }
 
 export default umzug;

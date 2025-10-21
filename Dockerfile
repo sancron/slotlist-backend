@@ -1,4 +1,4 @@
-ARG NODE_VERSION=8.1.4-alpine
+ARG NODE_VERSION=22.20.0-alpine
 FROM node:${NODE_VERSION}
 
 ARG PRODUCTION_BUILD=true
@@ -22,11 +22,11 @@ RUN set -ex \
         g++ \
         make \
         postgresql-dev \
-        python2 \
+        python3 \
     && yarn install \
     && if [ "$PRODUCTION_BUILD" == "true" ]; then \
         yarn build \
-        && yarn install --prod \
+        && yarn install --prod --ignore-scripts \
         && yarn cache clean; \
     fi \
     && apk del .build-deps-node

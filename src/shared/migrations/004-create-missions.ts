@@ -1,4 +1,4 @@
-import * as Boom from 'boom';
+import Boom from '@hapi/boom';
 import { DataTypes } from 'sequelize';
 
 import slug from '../util/slug';
