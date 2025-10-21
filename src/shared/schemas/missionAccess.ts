@@ -1,4 +1,4 @@
-import * as Joi from 'joi';
+import Joi from 'joi';
 
 import { communitySchema } from './community';
 import { userSchema } from './user';

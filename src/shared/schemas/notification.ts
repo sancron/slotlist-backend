@@ -1,4 +1,4 @@
-import * as Joi from 'joi';
+import Joi from 'joi';
 
 import { NOTIFICATION_TYPE_GENERIC, NOTIFICATION_TYPE_MISSION_SLOT_ASSIGNED, NOTIFICATION_TYPES } from '../types/notification';
 

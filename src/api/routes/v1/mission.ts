@@ -1,4 +1,4 @@
-import * as Joi from 'joi';
+import Joi from 'joi';
 
 import { MISSION_REQUIRED_DLCS, MISSION_VISIBILITIES, MISSION_VISIBILITY_HIDDEN, MISSION_VISIBILITY_PUBLIC } from '../../../shared/models/Mission';
 import { forbiddenSchema, internalServerErrorSchema } from '../../../shared/schemas/misc';

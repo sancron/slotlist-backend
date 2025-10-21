@@ -1,6 +1,13 @@
 {
-  "compileOnSave": true,
   "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "lib": [
+      "ES2022"
+    ],
+    "outDir": "dist",
+    "rootDir": "src",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "strict": true,
@@ -9,15 +16,20 @@
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,
     "noUnusedLocals": true,
-    "noUnusedParameters": false,
     "noImplicitAny": true,
     "noImplicitThis": true,
     "strictNullChecks": true,
-    "target": "es6",
-    "module": "commonjs",
-    "outDir": "dist/src",
-    "removeComments": true,
-    "sourceMap": true
+    "strictPropertyInitialization": false,
+    "useDefineForClassFields": false,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "sourceMap": true,
+    "skipLibCheck": true,
+    "useUnknownInCatchVariables": false,
+    "types": [
+      "node"
+    ]
   },
   "include": [
     "src"

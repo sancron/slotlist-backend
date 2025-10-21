@@ -1,5 +1,5 @@
-import * as Boom from 'boom';
-import * as Hapi from 'hapi';
+import Boom from '@hapi/boom';
+import * as Hapi from '@hapi/hapi';
 import * as _ from 'lodash';
 import { col, fn, literal } from 'sequelize';
 
@@ -9,6 +9,7 @@ import { User } from '../../../shared/models/User';
 import { hasPermission } from '../../../shared/util/acl';
 import { log as logger } from '../../../shared/util/log';
 import { sequelize } from '../../../shared/util/sequelize';
+import { LegacyReply, LegacyResponse } from '../../legacyAdapter';
 // tslint:disable-next-line:import-name
 const log = logger.child({ route: 'missionSlotTemplate', routeVersion: 'v1' });
 
@@ -16,7 +17,7 @@ const log = logger.child({ route: 'missionSlotTemplate', routeVersion: 'v1' });
  * Handlers for V1 of mission slot template endpoints
  */
 
-export function getMissionSlotTemplateList(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function getMissionSlotTemplateList(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         let userUid: string | null = null;
         let userCommunityUid: string | null = null;
@@ -98,7 +99,7 @@ export function getMissionSlotTemplateList(request: Hapi.Request, reply: Hapi.Re
     })());
 }
 
-export function createMissionSlotTemplate(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function createMissionSlotTemplate(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const payload = request.payload;
         const userUid = request.auth.credentials.user.uid;
@@ -119,7 +120,7 @@ export function createMissionSlotTemplate(request: Hapi.Request, reply: Hapi.Rep
     })());
 }
 
-export function getMissionSlotTemplateDetails(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function getMissionSlotTemplateDetails(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slotTemplateUid = request.params.slotTemplateUid;
         let userUid: string | null = null;
@@ -192,7 +193,7 @@ export function getMissionSlotTemplateDetails(request: Hapi.Request, reply: Hapi
     })());
 }
 
-export function updateMissionSlotTemplate(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function updateMissionSlotTemplate(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slotTemplateUid = request.params.slotTemplateUid;
         const payload = request.payload;
@@ -235,7 +236,7 @@ export function updateMissionSlotTemplate(request: Hapi.Request, reply: Hapi.Rep
     })());
 }
 
-export function deleteMissionSlotTemplate(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function deleteMissionSlotTemplate(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const slotTemplateUid = request.params.slotTemplateUid;
         const userUid = request.auth.credentials.user.uid;

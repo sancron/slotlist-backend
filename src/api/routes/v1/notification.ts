@@ -1,4 +1,4 @@
-import * as Joi from 'joi';
+import Joi from 'joi';
 
 import { internalServerErrorSchema } from '../../../shared/schemas/misc';
 import * as schemas from '../../../shared/schemas/notification';

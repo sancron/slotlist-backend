@@ -1,4 +1,4 @@
-import * as Joi from 'joi';
+import Joi from 'joi';
 
 import { MISSION_REPOSITORY_TYPE_ARMA3SYNC, MISSION_REPOSITORY_TYPES } from '../types/mission';
 

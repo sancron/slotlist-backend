@@ -1,4 +1,4 @@
-import * as dotenv from 'dotenv';
+import dotenv from 'dotenv';
 import * as _ from 'lodash';
 
 if (_.isString(process.env.DOTENV_FILE) && !_.isEmpty(process.env.DOTENV_FILE)) {
@@ -77,7 +77,11 @@ export class Config {
     // tslint:disable:cyclomatic-complexity max-func-body-length
     constructor() {
         const configEnvVariables: { [name: string]: string } = {};
-        _.each(process.env, (value: string, name: string): void => {
+        _.each(process.env, (value: string | undefined, name: string): void => {
+            if (!_.isString(value)) {
+                return;
+            }
+
             if (_.startsWith(name, 'CONFIG_')) {
                 configEnvVariables[name] = value;
             }

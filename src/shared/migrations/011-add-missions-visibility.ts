@@ -8,7 +8,7 @@ import { MISSION_VISIBILITIES, MISSION_VISIBILITY_HIDDEN } from '../models/Missi
 module.exports = {
     up: async (queryInterface: any): Promise<void> => {
         await queryInterface.addColumn('missions', 'visibility', {
-            type: DataTypes.ENUM(MISSION_VISIBILITIES),
+            type: DataTypes.ENUM(...MISSION_VISIBILITIES),
             allowNull: false,
             defaultValue: MISSION_VISIBILITY_HIDDEN
         });

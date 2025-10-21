@@ -1,5 +1,5 @@
-import * as Boom from 'boom';
-import * as Hapi from 'hapi';
+import Boom from '@hapi/boom';
+import * as Hapi from '@hapi/hapi';
 import * as _ from 'lodash';
 
 import { Community } from '../../../shared/models/Community';
@@ -8,13 +8,14 @@ import { Permission } from '../../../shared/models/Permission';
 import { User } from '../../../shared/models/User';
 import SteamService from '../../../shared/services/SteamService';
 import { log as logger } from '../../../shared/util/log';
+import { LegacyReply, LegacyResponse } from '../../legacyAdapter';
 const log = logger.child({ route: 'auth', routeVersion: 'v1' });
 
 /**
  * Handlers for V1 of auth endpoints
  */
 
-export function getSteamLoginRedirectURL(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function getSteamLoginRedirectURL(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const url = await SteamService.getLoginRedirectURL();
 
@@ -24,7 +25,7 @@ export function getSteamLoginRedirectURL(request: Hapi.Request, reply: Hapi.Repl
     })());
 }
 
-export function verifySteamLogin(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function verifySteamLogin(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const url = request.payload.url;
 
@@ -55,13 +56,13 @@ export function verifySteamLogin(request: Hapi.Request, reply: Hapi.ReplyWithCon
     })());
 }
 
-export function refreshJWT(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function refreshJWT(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const userUid = request.auth.credentials.user.uid;
 
         log.debug({ function: 'refreshJWT', userUid }, 'Refreshing JWT for user');
 
-        const user = await User.findById(userUid);
+        const user = await User.findByPk(userUid);
         if (_.isNil(user)) {
             log.warn({ function: 'refreshJWT', userUid }, 'Did not find user to refresh JWT for logged in user, returning 401 to force re-authentication');
             throw Boom.unauthorized('User not found');
@@ -80,14 +81,14 @@ export function refreshJWT(request: Hapi.Request, reply: Hapi.ReplyWithContinue)
     })());
 }
 
-export function getAccountDetails(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function getAccountDetails(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
-        const userUid: string = request.auth.credentials.sub;
+        const userUid: string = request.auth.credentials.user.uid;
 
         log.debug({ function: 'getAccountDetails', userUid }, 'Retrieving account details for user');
 
         // Deliberately load all missions (even already ended ones) on account page
-        const user = await User.findById(userUid, {
+        const user = await User.findByPk(userUid, {
             include: [
                 {
                     model: Community,
@@ -133,15 +134,15 @@ export function getAccountDetails(request: Hapi.Request, reply: Hapi.ReplyWithCo
     })());
 }
 
-export function patchAccountDetails(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function patchAccountDetails(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
-        const userUid: string = request.auth.credentials.sub;
+        const userUid: string = request.auth.credentials.user.uid;
         const payload = request.payload;
 
         log.debug({ function: 'patchAccountDetails', userUid, payload }, 'Updating account details for user');
 
         // Deliberately load all missions (even already ended ones) on account page
-        const user = await User.findById(userUid, {
+        const user = await User.findByPk(userUid, {
             include: [
                 {
                     model: Community,
@@ -199,14 +200,14 @@ export function patchAccountDetails(request: Hapi.Request, reply: Hapi.ReplyWith
     })());
 }
 
-export function deleteAccount(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function deleteAccount(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const userUid = request.auth.credentials.user.uid;
         const payload = request.payload;
 
         log.debug({ function: 'deleteAccount', userUid, payload }, 'Received request to delete user account');
 
-        const user = await User.findById(userUid);
+        const user = await User.findByPk(userUid);
         if (_.isNil(user)) {
             log.warn({ function: 'deleteAccount', userUid, payload }, 'Did not find user to delete for logged in user, returning 401 to force re-authentication');
             throw Boom.unauthorized('User not found');

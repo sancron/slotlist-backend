@@ -1,19 +1,21 @@
-import * as slug from 'slug';
+import slug from 'slug';
 
 /**
  * Sets defaults for slug replacements
  */
-slug.charmap['.'] = '-';
+const slugLib = slug as any;
 
-(<any>slug.defaults.modes).custom = {
+slugLib.charmap['.'] = '-';
+
+slugLib.defaults.modes.custom = {
     replacement: '-',
     symbols: true,
     remove: /[%]/g, // remove `%` from slugs to avoid issues with permission removal using `iLike`
     lower: true,
-    charmap: slug.charmap,
-    multicharmap: slug.multicharmap
+    charmap: slugLib.charmap,
+    multicharmap: slugLib.multicharmap
 };
 
-slug.defaults.mode = 'custom';
+slugLib.defaults.mode = 'custom';
 
 export default slug;

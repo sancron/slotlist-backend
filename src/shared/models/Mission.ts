@@ -1,5 +1,5 @@
-import * as Boom from 'boom';
-import * as Joi from 'joi';
+import Boom from '@hapi/boom';
+import Joi from 'joi';
 import * as _ from 'lodash';
 import {
     BelongsTo,
@@ -13,7 +13,7 @@ import {
     Model
 } from 'sequelize';
 import { Attribute, Options } from 'sequelize-decorators';
-import * as uuid from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 
 import { log as logger } from '../util/log';
 import sequelize from '../util/sequelize';
@@ -284,7 +284,7 @@ export class Mission extends Model {
         type: DataTypes.DATE,
         allowNull: false,
         validate: {
-            afterSlottingTime(val: Date): void {
+            afterSlottingTime(this: Mission, val: Date): void {
                 if (val < this.slottingTime) {
                     throw new Error('Mission startTime must be after slottingTime');
                 }
@@ -305,7 +305,7 @@ export class Mission extends Model {
         type: DataTypes.DATE,
         allowNull: false,
         validate: {
-            afterStartTime(val: Date): void {
+            afterStartTime(this: Mission, val: Date): void {
                 if (val < this.startTime) {
                     throw new Error('Mission endTime must be after startTime');
                 }
@@ -363,9 +363,9 @@ export class Mission extends Model {
         defaultValue: null,
         validate: {
             validMissionServerInfo(val: any): void {
-                const validationResult = Joi.validate(val, missionServerInfoSchema);
+                const validationResult = missionServerInfoSchema.validate(val);
                 if (!_.isNil(validationResult.error)) {
-                    throw Boom.badRequest('Invalid mission server info', validationResult);
+                    throw Boom.badRequest('Invalid mission server info', validationResult.error);
                 }
             }
         }
@@ -385,9 +385,9 @@ export class Mission extends Model {
         defaultValue: null,
         validate: {
             validMissionServerInfo(val: any): void {
-                const validationResult = Joi.validate(val, missionServerInfoSchema);
+                const validationResult = missionServerInfoSchema.validate(val);
                 if (!_.isNil(validationResult.error)) {
-                    throw Boom.badRequest('Invalid mission server info', validationResult);
+                    throw Boom.badRequest('Invalid mission server info', validationResult.error);
                 }
             }
         }
@@ -412,9 +412,9 @@ export class Mission extends Model {
                     localVal = [localVal];
                 }
 
-                const validationResult = Joi.validate(localVal, Joi.array().required().items(missionRepositoryInfoSchema.optional()));
+                const validationResult = Joi.array().required().items(missionRepositoryInfoSchema.optional()).validate(localVal);
                 if (!_.isNil(validationResult.error)) {
-                    throw Boom.badRequest('Invalid mission repository info', validationResult);
+                    throw Boom.badRequest('Invalid mission repository info', validationResult.error);
                 }
             }
         }
@@ -429,7 +429,7 @@ export class Mission extends Model {
      * @memberof Mission
      */
     @Attribute({
-        type: DataTypes.ENUM(MISSION_VISIBILITIES),
+        type: DataTypes.ENUM(...MISSION_VISIBILITIES),
         allowNull: false,
         defaultValue: MISSION_VISIBILITY_HIDDEN
     })
@@ -817,7 +817,7 @@ export class Mission extends Model {
     public async createPermissionNotification(userOrUserUid: User | string, permission: string, granted: boolean): Promise<void> {
         let user: User;
         if (_.isString(userOrUserUid)) {
-            const u = await User.findById(userOrUserUid);
+            const u = await User.findByPk(userOrUserUid);
             if (_.isNil(u)) {
                 log.warn(
                     { function: 'createPermissionNotification', missionUid: this.uid, userUid: userOrUserUid },
@@ -859,7 +859,7 @@ export class Mission extends Model {
     public async createSlotAssignmentChangedNotification(userOrUserUid: User | string, slotTitle: string, assigned: boolean): Promise<void> {
         let user: User;
         if (_.isString(userOrUserUid)) {
-            const u = await User.findById(userOrUserUid);
+            const u = await User.findByPk(userOrUserUid);
             if (_.isNil(u)) {
                 log.warn(
                     { function: 'createSlotAssignmentChangedNotification', missionUid: this.uid, userUid: userOrUserUid },
@@ -912,7 +912,7 @@ export class Mission extends Model {
     public async createSlotRegistrationRemovedNotifications(userOrUserUid: User | string, slotTitle: string): Promise<void> {
         let user: User;
         if (_.isString(userOrUserUid)) {
-            const u = await User.findById(userOrUserUid, { include: [{ model: Community, as: 'community' }] });
+            const u = await User.findByPk(userOrUserUid, { include: [{ model: Community, as: 'community' }] });
             if (_.isNil(u)) {
                 log.warn(
                     { function: 'createSlotRegistrationRemovedNotifications', missionUid: this.uid, userUid: userOrUserUid },
@@ -997,7 +997,7 @@ export class Mission extends Model {
     public async createSlotRegistrationSubmittedNotifications(userOrUserUid: User | string, slotTitle: string): Promise<void> {
         let user: User;
         if (_.isString(userOrUserUid)) {
-            const u = await User.findById(userOrUserUid, { include: [{ model: Community, as: 'community' }] });
+            const u = await User.findByPk(userOrUserUid, { include: [{ model: Community, as: 'community' }] });
             if (_.isNil(u)) {
                 log.warn(
                     { function: 'createSlotRegistrationSubmittedNotifications', missionUid: this.uid, userUid: userOrUserUid },
@@ -1109,7 +1109,7 @@ export class Mission extends Model {
      * @memberof Mission
      */
     public async findSlot(slotUid: string): Promise<MissionSlot | null> {
-        return MissionSlot.findById(slotUid);
+        return MissionSlot.findByPk(slotUid);
     }
 
     /**
@@ -1121,7 +1121,7 @@ export class Mission extends Model {
      */
     public async generateMissionToken(): Promise<Mission> {
         return this.update({
-            missionToken: uuid.v4()
+            missionToken: uuidv4()
         });
     }
 

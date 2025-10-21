@@ -1,8 +1,7 @@
-import * as bunyan from 'bunyan';
-// tslint:disable-next-line
-const StackdriverLogging = require('@google-cloud/logging-bunyan');
-import * as _ from 'lodash';
-import * as pjson from 'pjson';
+import bunyan from 'bunyan';
+import { LoggingBunyan } from '@google-cloud/logging-bunyan';
+import _ from 'lodash';
+import pjson from 'pjson';
 
 import { Logging as LoggingConfig } from '../config/Config';
 
@@ -89,32 +88,32 @@ const serializers: bunyan.Serializers = {
 };
 
 const streams: bunyan.Stream[] = [];
-// tslint:disable-next-line:strict-boolean-expressions
 if (LoggingConfig.stdout) {
     streams.push({
-        level: <any>LoggingConfig.stdout,
+        level: LoggingConfig.stdout as any,
         stream: process.stdout
     });
 }
 
 _.each(LoggingConfig.files, (logFile: { path: string; level: string | number }) => {
     streams.push({
-        level: <any>logFile.level,
+        level: logFile.level as any,
         path: logFile.path
     });
 });
 
 if (LoggingConfig.stackdriver) {
-    const stackdriverLogging = StackdriverLogging();
-    streams.push(stackdriverLogging.stream());
+    const loggingBunyan = new LoggingBunyan();
+    streams.push(loggingBunyan.stream('info'));
 }
 
 export const log = bunyan.createLogger({
     name: 'slotlist-backend',
-    serializers: serializers,
-    level: <any>LoggingConfig.stdout,
+    serializers,
+    level: LoggingConfig.stdout as any,
     src: LoggingConfig.src,
-    version: pjson.version
+    version: pjson.version,
+    streams: streams.length > 0 ? streams : undefined
 });
 
 // tslint:disable-next-line:no-default-export

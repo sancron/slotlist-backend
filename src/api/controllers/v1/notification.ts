@@ -1,14 +1,15 @@
-import * as Hapi from 'hapi';
+import * as Hapi from '@hapi/hapi';
 import * as _ from 'lodash';
-import * as moment from 'moment';
+import moment from 'moment';
 
 import { Notification } from '../../../shared/models/Notification';
+import { LegacyReply, LegacyResponse } from '../../legacyAdapter';
 
 /**
  * Handlers for V1 of notification endpoints
  */
 
-export function getNotificationList(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function getNotificationList(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const userUid: string = request.auth.credentials.user.uid;
 
@@ -63,7 +64,7 @@ export function getNotificationList(request: Hapi.Request, reply: Hapi.ReplyWith
     })());
 }
 
-export function getUnseenNotificationCount(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function getUnseenNotificationCount(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const userUid: string = request.auth.credentials.user.uid;
 

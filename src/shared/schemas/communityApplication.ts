@@ -1,4 +1,4 @@
-import * as Joi from 'joi';
+import Joi from 'joi';
 
 import { COMMUNITY_APPLICATION_STATUS_SUBMITTED, COMMUNITY_APPLICATION_STATUSES } from '../models/CommunityApplication';
 import { userSchema } from './user';

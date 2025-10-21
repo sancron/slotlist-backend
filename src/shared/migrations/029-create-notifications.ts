@@ -15,7 +15,7 @@ module.exports = {
                 primaryKey: true
             },
             notificationType: {
-                type: DataTypes.ENUM(NOTIFICATION_TYPES),
+                type: DataTypes.ENUM(...NOTIFICATION_TYPES),
                 allowNull: false,
                 defaultValue: NOTIFICATION_TYPE_GENERIC
             },

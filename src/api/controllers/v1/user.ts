@@ -1,7 +1,7 @@
-import * as Boom from 'boom';
-import * as Hapi from 'hapi';
+import Boom from '@hapi/boom';
+import * as Hapi from '@hapi/hapi';
 import * as _ from 'lodash';
-import * as moment from 'moment';
+import moment from 'moment';
 import { col, fn, literal } from 'sequelize';
 
 import { Community } from '../../../shared/models/Community';
@@ -11,13 +11,14 @@ import { User } from '../../../shared/models/User';
 import { hasPermission } from '../../../shared/util/acl';
 import { log as logger } from '../../../shared/util/log';
 import { sequelize } from '../../../shared/util/sequelize';
+import { LegacyReply, LegacyResponse } from '../../legacyAdapter';
 const log = logger.child({ route: 'user', routeVersion: 'v1' });
 
 /**
  * Handlers for V1 of user endpoints
  */
 
-export function getUserList(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function getUserList(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         let userUid: string | null = null;
         if (request.auth.isAuthenticated) {
@@ -72,7 +73,7 @@ export function getUserList(request: Hapi.Request, reply: Hapi.ReplyWithContinue
     })());
 }
 
-export function getUserDetails(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function getUserDetails(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const targetUserUid = request.params.userUid;
         let userUid: string | null = null;
@@ -80,7 +81,7 @@ export function getUserDetails(request: Hapi.Request, reply: Hapi.ReplyWithConti
             userUid = request.auth.credentials.user.uid;
         }
 
-        const user = await User.findById(targetUserUid, {
+        const user = await User.findByPk(targetUserUid, {
             include: [
                 {
                     model: Community,
@@ -112,13 +113,13 @@ export function getUserDetails(request: Hapi.Request, reply: Hapi.ReplyWithConti
     })());
 }
 
-export function modifyUserDetails(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function modifyUserDetails(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const targetUserUid = request.params.userUid;
         const payload = request.payload;
         const userUid = request.auth.credentials.user.uid;
 
-        const targetUser = await User.findById(targetUserUid, {
+        const targetUser = await User.findByPk(targetUserUid, {
             include: [
                 {
                     model: Permission,
@@ -152,12 +153,12 @@ export function modifyUserDetails(request: Hapi.Request, reply: Hapi.ReplyWithCo
     })());
 }
 
-export function deleteUser(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function deleteUser(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const targetUserUid = request.params.userUid;
         const userUid = request.auth.credentials.user.uid;
 
-        const targetUser = await User.findById(targetUserUid, {
+        const targetUser = await User.findByPk(targetUserUid, {
             include: [
                 {
                     model: Permission,
@@ -189,7 +190,7 @@ export function deleteUser(request: Hapi.Request, reply: Hapi.ReplyWithContinue)
     })());
 }
 
-export function getUserMissionList(request: Hapi.Request, reply: Hapi.ReplyWithContinue): Hapi.Response {
+export function getUserMissionList(request: Hapi.Request, reply: LegacyReply): LegacyResponse {
     return reply((async () => {
         const targetUserUid = request.params.userUid;
         let userUid: string | null = null;
@@ -270,7 +271,7 @@ export function getUserMissionList(request: Hapi.Request, reply: Hapi.ReplyWithC
             };
         }
 
-        const user = await User.findById(targetUserUid);
+        const user = await User.findByPk(targetUserUid);
         if (_.isNil(user)) {
             log.debug({ function: 'getUserMissionList', targetUserUid, queryOptions }, 'User with given UID not found');
             throw Boom.notFound('User not found');
