@@ -21,7 +21,7 @@ All configuration is handled via environment variables, a full list can be found
 | CONFIG_JWT_ALGORITHMS | List of algorithms to assign for JWT signing | HS256 |
 | CONFIG_JWT_AUDIENCE | Target audience for JWTs | http://localhost:4000 |
 | CONFIG_JWT_EXPIRESIN | Expiration duration for JWTs | 3d |
-| CONFIG_JWT_ISSUER | Issuer for JWTs | http://localhost:4000 |
+| CONFIG_JWT_ISSUER | Issuer for JWTs | http://localhost:3000 |
 | CONFIG_JWT_SECRET | Secret used for signing JWTs | supersecret |
 | CONFIG_LOGGING_FILES_0_PATH | Path of log file | logs/slotlist-backend.log |
 | CONFIG_LOGGING_FILES_0_LEVEL | Bunyan log level for log file | debug |
@@ -30,10 +30,11 @@ All configuration is handled via environment variables, a full list can be found
 | CONFIG_LOGGING_STACKDRIVER | Enables logging to Stackdriver | false |
 | CONFIG_STEAM_OPENID_CALLBACKURL | Callback URL for Steam OpenID | http://localhost:4000/login |
 | CONFIG_STEAM_OPENID_REALM | Address to use as OpenID realm | http://localhost:4000 |
-| CONFIG_STEAM_API_SECRET | API secret for Steam OpenID |   |
+| CONFIG_STEAM_API_SECRET | API secret for Steam OpenID | supersecret |
 | CONFIG_STORAGE_BUCKETNAME | Name of GCP storage bucket |   |
 | CONFIG_STORAGE_PROJECTID | Name/ID of GCP project |   |
 | CONFIG_STORAGE_KEYFILENAME | Path to GCP credentials file | (empty) |
+| CONFIG_STORAGE_IMAGECACHECONTROLMAXAGE | Cache-Control max-age in seconds for stored images | 2592000 |
 | DEFAULT_ADMIN_UID | UUIDv4 of default admin user |   |
 | DEFAULT_ADMIN_STEAMID | Steam ID of default admin user |   |
 | DEFAULT_ADMIN_NICKNAME | Nickname of default admin user |   |
@@ -42,6 +43,8 @@ All configuration is handled via environment variables, a full list can be found
 
 The repository ships with `deployment/portainer/production.env`, which contains sane defaults for running the backend at
 `https://slotlist.insidearma.de` behind NGINX Proxy Manager. Adjust the values in that file before deploying to production.
+In production, for example, `CONFIG_JWT_ISSUER` is set to `https://slotlist.insidearma.de`, while the development default
+remains `http://localhost:3000`.
 
 ### Logging configuration
 slotlist-backend uses [bunyan](https://github.com/trentm/node-bunyan) to generate structured logs, which can easily be fed to e.g. elasticsearch or any other log processing and parsing software. Thus, all logs will be in JSON and will be printed to `stdout` by default.  
