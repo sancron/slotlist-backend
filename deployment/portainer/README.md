@@ -19,7 +19,7 @@ This folder contains the artefacts required to deploy **slotlist-backend** via [
 1. In Portainer, create a new *Stack* and choose the "Web editor" or "Git repository" option that best fits your workflow.
 2. Provide the contents of `docker-compose.yml` (or reference this repository) and ensure `deployment/portainer/production.env` is supplied as an environment file for the stack.
 3. Deploy the stack. Portainer will build the image using the included `Dockerfile` and start two services: `slotlist-backend` and the accompanying PostgreSQL database.
-4. In NGINX Proxy Manager, create a new **Proxy Host** for `slotlist.insidearma.de` pointing to the internal hostname `slotlist-backend` on port `3000` and enable SSL using your preferred certificate source.
+4. In NGINX Proxy Manager, create a new **Proxy Host** for `api.slotlist.insidearma.de` pointing to the internal hostname `slotlist-backend` on port `3000` and enable SSL using your preferred certificate source.
 
-After the stack has been deployed and the proxy host configured, the API will be reachable at `https://slotlist.insidearma.de`.
+After the stack has been deployed and the proxy host configured, the API will be reachable at `https://api.slotlist.insidearma.de`.
 

@@ -1,11 +1,11 @@
 # slotlist-backend
-Backend of [slotlist.insidearma.de](https://slotlist.insidearma.de), an ArmA 3 mission planning and slotlist management tool.
+Backend powering [slotlist.insidearma.de](https://slotlist.insidearma.de), an ArmA 3 mission planning and slotlist management tool. The public API is exposed under [api.slotlist.insidearma.de](https://api.slotlist.insidearma.de).
 The corresponding frontend implementation of this project can be found at [slotlist-frontend](https://github.com/MorpheusXAUT/slotlist-frontend).
 
 ## 📢 Project Status
 
 The public service previously available at slotlist.info is being sunset, but the software remains available for private
-deployments. This repository has been updated to target the new instance operated at `slotlist.insidearma.de` and now focuses on
+deployments. This repository has been updated to target the new instance operated at `slotlist.insidearma.de` (frontend) with its API hosted at `api.slotlist.insidearma.de` and now focuses on
 container-based deployments via Portainer and NGINX Proxy Manager.
 
 ## Installation
@@ -142,7 +142,7 @@ nach außen veröffentlicht. Im Ordner `deployment/portainer` findest du dafür 
 | `CONFIG_DATABASE_DATABASE` / `POSTGRES_DB` | Name der Datenbank | `slotlist-backend` |
 | `CONFIG_DATABASE_USERNAME` / `POSTGRES_USER` | Datenbankbenutzer | `slotlist-backend` |
 | `CONFIG_DATABASE_PASSWORD` / `POSTGRES_PASSWORD` | Datenbankpasswort | `slotlist-backend` |
-| `CONFIG_HTTP_PUBLICHOST` | Öffentlicher Hostname der Anwendung | `slotlist.insidearma.de` |
+| `CONFIG_HTTP_PUBLICHOST` | Öffentlicher Hostname der Anwendung | `api.slotlist.insidearma.de` |
 | `CONFIG_STEAM_API_SECRET`, `CONFIG_JWT_SECRET` | Erforderliche Geheimnisse für Authentifizierung | `please-change-me` |
 | `DEFAULT_ADMIN_STEAMID`, `DEFAULT_ADMIN_NICKNAME` | Initiale Admin-Zugänge | *(leer)* |
 
