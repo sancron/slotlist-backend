@@ -89,18 +89,65 @@ Unfortunately, there are no automated unit tests as of now (2018-01-09), however
 future, removing the need to test all new and existing functionality by hand.
 
 ## Deployment
-slotlist-backend is now intended to be deployed through Portainer and exposed via NGINX Proxy Manager. The
-`deployment/portainer` folder contains the environment file and documentation required for that workflow. A typical
-installation involves the following steps:
+slotlist-backend ist für den Betrieb über Portainer konzipiert und wird üblicherweise über den NGINX Proxy Manager
+nach außen veröffentlicht. Im Ordner `deployment/portainer` findest du dafür eine Referenzkonfiguration.
 
-1. Review and customise `deployment/portainer/production.env`.
-2. Ensure a Docker network shared with your NGINX Proxy Manager instance exists (the provided configuration expects
-   `npm_proxy`).
-3. Deploy the stack in Portainer using the root `docker-compose.yml` file.
-4. Configure a Proxy Host in NGINX Proxy Manager for `slotlist.insidearma.de` that forwards traffic to the
-   `slotlist-backend` service on port 3000.
+### Voraussetzungen
+* Eine Portainer-Instanz mit Zugriff auf den Ziel-Docker-Host.
+* Ein gemeinsames Docker-Netzwerk mit deinem NGINX Proxy Manager (das Compose-File erwartet standardmäßig
+  `npm_proxy`). Den Netzwerknamen kannst du im Compose-File anpassen, falls dein Setup einen anderen Namen nutzt.
+* Optional: Eine lokale `.env`-Datei im Projektwurzelverzeichnis, um sensible Werte zu überschreiben, die nicht in der
+  Versionskontrolle landen sollen.
 
-Since no direct SSL support is integrated, HTTPS termination is handled entirely by NGINX Proxy Manager.
+### Schritt 1: Umgebungsvariablen vorbereiten
+1. Öffne `deployment/portainer/production.env` und passe alle Werte an, die für deine Installation spezifisch sind.
+   Die Datei enthält sowohl die Standardwerte für den Backend-Container als auch für den PostgreSQL-Dienst.
+2. Lege im Projektverzeichnis eine eigene `.env`-Datei an (oder erweitere eine bestehende), um individuelle
+   Überschreibungen vorzunehmen. Diese Datei wird automatisch vom `slotlist-backend`-Dienst eingelesen. Typische
+   Einträge sehen beispielsweise so aus:
+   ```dotenv
+   CONFIG_HTTP_PUBLICHOST=slotlist.beispiel.de
+   CONFIG_STEAM_API_SECRET=dein-geheimer-wert
+   CONFIG_JWT_SECRET=bitte-anpassen
+
+   # Optionale Overrides für die Datenbank
+   POSTGRES_DB=slotlist_production
+   POSTGRES_USER=slotlist_user
+   POSTGRES_PASSWORD=sicheres-passwort
+   ```
+   Portainer erlaubt beim Deployment außerdem das manuelle Setzen einzelner Variablen. Werte aus der `.env`-Datei haben
+   Vorrang vor denen aus `production.env`, sodass du sensible Informationen bequem trennen kannst.
+
+### Schritt 2: Stack in Portainer deployen
+1. Melde dich in Portainer an und öffne **Stacks → Add stack**.
+2. Vergib einen aussagekräftigen **Name** für den Stack (z. B. `slotlist-backend`).
+3. Lade den Inhalt der Datei `docker-compose.yml` in den Editor oder lade die Datei hoch.
+4. Im Abschnitt **Environment variables** kannst du zusätzliche Schlüssel-Wert-Paare anlegen oder eine vorbereitete
+   `.env`-Datei hochladen. Stelle sicher, dass mindestens alle geheimen Werte (`CONFIG_*`, `DEFAULT_ADMIN_*`,
+   `POSTGRES_*`) korrekt gesetzt sind.
+5. Bestätige mit **Deploy the stack**. Portainer startet dabei sowohl den `slotlist-backend`-Dienst als auch den
+   dazugehörigen PostgreSQL-Container (`db`). Dank des `env_file`-Eintrags werden sämtliche Variablen automatisch
+   übernommen.
+
+### Schritt 3: Zugriff konfigurieren
+1. Richte im NGINX Proxy Manager einen Proxy Host ein, der auf den Container `slotlist-backend` Port `3000`
+   weiterleitet und – falls gewünscht – ein TLS-Zertifikat (z. B. Let’s Encrypt) bereitstellt.
+2. Prüfe nach dem ersten Start die Container-Logs in Portainer, um sicherzustellen, dass die Verbindung zur
+   PostgreSQL-Datenbank (`db`) hergestellt wurde.
+
+### Wichtige Variablen im Überblick
+| Variable | Zweck | Standardwert |
+| --- | --- | --- |
+| `CONFIG_DATABASE_HOST` | Hostname des PostgreSQL-Dienstes innerhalb des Stacks | `db` |
+| `CONFIG_DATABASE_DATABASE` / `POSTGRES_DB` | Name der Datenbank | `slotlist-backend` |
+| `CONFIG_DATABASE_USERNAME` / `POSTGRES_USER` | Datenbankbenutzer | `slotlist-backend` |
+| `CONFIG_DATABASE_PASSWORD` / `POSTGRES_PASSWORD` | Datenbankpasswort | `slotlist-backend` |
+| `CONFIG_HTTP_PUBLICHOST` | Öffentlicher Hostname der Anwendung | `slotlist.insidearma.de` |
+| `CONFIG_STEAM_API_SECRET`, `CONFIG_JWT_SECRET` | Erforderliche Geheimnisse für Authentifizierung | `please-change-me` |
+| `DEFAULT_ADMIN_STEAMID`, `DEFAULT_ADMIN_NICKNAME` | Initiale Admin-Zugänge | *(leer)* |
+
+SSL/TLS wird weiterhin vollständig durch den NGINX Proxy Manager termininiert; der Backend-Container selbst spricht
+innerhalb des Docker-Netzwerks HTTP.
 
 ## Contributing
 Pull requests are more than welcome - I am grateful for any help, no matter how small it is! For major changes, please open an
