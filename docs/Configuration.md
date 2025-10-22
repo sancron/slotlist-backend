@@ -42,8 +42,8 @@ All configuration is handled via environment variables, a full list can be found
 | SENTRY_DSN | DSN for Sentry reporting |   |
 
 The repository ships with `deployment/portainer/production.env`, which contains sane defaults for running the backend at
-`https://slotlist.insidearma.de` behind NGINX Proxy Manager. Adjust the values in that file before deploying to production.
-In production, for example, `CONFIG_JWT_ISSUER` is set to `https://slotlist.insidearma.de`, while the development default
+`https://api.slotlist.insidearma.de` behind NGINX Proxy Manager. Adjust the values in that file before deploying to production.
+In production, for example, `CONFIG_JWT_ISSUER` is set to `https://api.slotlist.insidearma.de`, while the development default
 remains `http://localhost:3000`.
 
 ### Logging configuration
