@@ -23,3 +23,15 @@ This folder contains the artefacts required to deploy **slotlist-backend** via [
 
 After the stack has been deployed and the proxy host configured, the API will be reachable at `https://api.slotlist.insidearma.de`.
 
+### Deploying the stack directly from GitHub
+
+Portainer can pull this repository and build the container image on the target Docker host without requiring a pre-built image. To use this workflow:
+
+1. Choose the **Git repository** option when creating the stack.
+2. Set the repository URL to the GitHub project that contains the backend (for example `https://github.com/<organisation>/slotlist-backend.git`) and select the branch or tag you want to deploy.
+3. In **Compose path**, enter `docker-compose.yml` so Portainer uses the root compose file from the repository.
+4. Add an environment file entry that points to `deployment/portainer/production.env`. Portainer will mount it automatically when deploying the stack. If your GitHub repository is private, provide access credentials in the stack configuration so Portainer can clone it.
+5. Deploy the stack. Portainer clones the repository, builds the image from the included `Dockerfile` and starts the `slotlist-backend` and PostgreSQL services.
+
+This approach ensures that the deployed container always reflects the selected Git revision without the need to publish Docker images to an external registry.
+
