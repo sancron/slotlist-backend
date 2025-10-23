@@ -11,6 +11,7 @@ import { describe, it } from 'mocha';
 import Module from 'module';
 
 import './polyfills.spec';
+import './steam.service.spec';
 
 import { LegacyReply } from '../api/legacyAdapter';
 

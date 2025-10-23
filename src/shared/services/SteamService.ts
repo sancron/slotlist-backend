@@ -71,7 +71,7 @@ export class SteamService {
                 } else {
                     log.warn({ function: 'verifySteamLogin', result }, 'Failed to verify Steam login');
 
-                    return reject('Failed to verify Steam login');
+                    return reject(Boom.unauthorized('Failed to verify Steam login'));
                 }
             });
         });
