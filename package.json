@@ -19,7 +19,7 @@
     "migrate": "node dist/shared/util/runMigrations.js"
   },
   "engines": {
-    "node": "22.20.0"
+    "node": "22.21.0"
   },
   "dependencies": {
     "@google-cloud/logging-bunyan": "^5.1.0",

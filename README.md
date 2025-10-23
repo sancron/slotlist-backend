@@ -10,7 +10,8 @@ container-based deployments via Portainer and NGINX Proxy Manager.
 
 ## Installation
 ### Requirements
-* [Node](https://nodejs.org) 22.20.0 (LTS)
+* [Node](https://nodejs.org) 22.21.0 (LTS)
+> _Note_: Node.js support was bumped to 22.21.0 LTS to align with the project's infrastructure baseline and incorporate the latest LTS fixes.
 * [Yarn](https://yarnpkg.com) 1.4 and up
 * [PostgreSQL](https://www.postgresql.org/) 9.6 and up
 
