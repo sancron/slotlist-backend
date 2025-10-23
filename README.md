@@ -85,8 +85,8 @@ The easiest way to start developing is by using the Docker setup described above
 changes - you can thus run a build task in your IDE and the backend container will automatically restart with the latest
 changes.
 
-Unfortunately, there are no automated unit tests as of now (2018-01-09), however I plan on adding some mocha tests in the
-future, removing the need to test all new and existing functionality by hand.
+Automated unit tests are executed with Mocha (`yarn test`) and cover critical flows such as verifying that failed Steam logins
+return a defined HTTP 401 response for clients.
 
 ## Deployment
 slotlist-backend ist für den Betrieb über Portainer konzipiert und wird üblicherweise über den NGINX Proxy Manager
