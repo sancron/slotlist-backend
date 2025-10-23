@@ -113,7 +113,7 @@ export const mission = [
                             })
                         },
                         500: {
-                            description: 'An error occured while processing the request',
+                            description: 'An error occurred while processing the request',
                             schema: internalServerErrorSchema
                         }
                     }
@@ -153,7 +153,7 @@ export const mission = [
                 'hapi-swagger': {
                     responses: {
                         500: {
-                            description: 'An error occured while processing the request',
+                            description: 'An error occurred while processing the request',
                             schema: internalServerErrorSchema
                         }
                     }
@@ -253,7 +253,7 @@ export const mission = [
                             })
                         },
                         500: {
-                            description: 'An error occured while processing the request',
+                            description: 'An error occurred while processing the request',
                             schema: internalServerErrorSchema
                         }
                     }
@@ -307,7 +307,7 @@ export const mission = [
                             })
                         },
                         500: {
-                            description: 'An error occured while processing the request',
+                            description: 'An error occurred while processing the request',
                             schema: internalServerErrorSchema
                         }
                     }
@@ -404,7 +404,7 @@ export const mission = [
                             })
                         },
                         500: {
-                            description: 'An error occured while processing the request',
+                            description: 'An error occurred while processing the request',
                             schema: internalServerErrorSchema
                         }
                     }
@@ -470,7 +470,7 @@ export const mission = [
                             })
                         },
                         500: {
-                            description: 'An error occured while processing the request',
+                            description: 'An error occurred while processing the request',
                             schema: internalServerErrorSchema
                         }
                     }
@@ -550,7 +550,7 @@ export const mission = [
                             })
                         },
                         500: {
-                            description: 'An error occured while processing the request',
+                            description: 'An error occurred while processing the request',
                             schema: internalServerErrorSchema
                         }
                     }
@@ -621,7 +621,7 @@ export const mission = [
                             })
                         },
                         500: {
-                            description: 'An error occured while processing the request',
+                            description: 'An error occurred while processing the request',
                             schema: internalServerErrorSchema
                         }
                     }
@@ -678,7 +678,7 @@ export const mission = [
                             })
                         },
                         500: {
-                            description: 'An error occured while processing the request',
+                            description: 'An error occurred while processing the request',
                             schema: internalServerErrorSchema
                         }
                     }
@@ -750,7 +750,7 @@ export const mission = [
                             })
                         },
                         500: {
-                            description: 'An error occured while processing the request',
+                            description: 'An error occurred while processing the request',
                             schema: internalServerErrorSchema
                         }
                     }
@@ -807,7 +807,7 @@ export const mission = [
                             })
                         },
                         500: {
-                            description: 'An error occured while processing the request',
+                            description: 'An error occurred while processing the request',
                             schema: internalServerErrorSchema
                         }
                     }
@@ -897,7 +897,7 @@ export const mission = [
                             })
                         },
                         500: {
-                            description: 'An error occured while processing the request',
+                            description: 'An error occurred while processing the request',
                             schema: internalServerErrorSchema
                         }
                     }
@@ -977,7 +977,7 @@ export const mission = [
                             })
                         },
                         500: {
-                            description: 'An error occured while processing the request',
+                            description: 'An error occurred while processing the request',
                             schema: internalServerErrorSchema
                         }
                     }
@@ -1055,7 +1055,7 @@ export const mission = [
                             })
                         },
                         500: {
-                            description: 'An error occured while processing the request',
+                            description: 'An error occurred while processing the request',
                             schema: internalServerErrorSchema
                         }
                     }
@@ -1112,7 +1112,7 @@ export const mission = [
                             })
                         },
                         500: {
-                            description: 'An error occured while processing the request',
+                            description: 'An error occurred while processing the request',
                             schema: internalServerErrorSchema
                         }
                     }
@@ -1175,7 +1175,7 @@ export const mission = [
                             })
                         },
                         500: {
-                            description: 'An error occured while processing the request',
+                            description: 'An error occurred while processing the request',
                             schema: internalServerErrorSchema
                         }
                     }
@@ -1239,7 +1239,7 @@ export const mission = [
                             })
                         },
                         500: {
-                            description: 'An error occured while processing the request',
+                            description: 'An error occurred while processing the request',
                             schema: internalServerErrorSchema
                         }
                     }
@@ -1296,7 +1296,7 @@ export const mission = [
                             })
                         },
                         500: {
-                            description: 'An error occured while processing the request',
+                            description: 'An error occurred while processing the request',
                             schema: internalServerErrorSchema
                         }
                     }
@@ -1350,7 +1350,7 @@ export const mission = [
                             })
                         },
                         500: {
-                            description: 'An error occured while processing the request',
+                            description: 'An error occurred while processing the request',
                             schema: internalServerErrorSchema
                         }
                     }
@@ -1431,7 +1431,7 @@ export const mission = [
                             })
                         },
                         500: {
-                            description: 'An error occured while processing the request',
+                            description: 'An error occurred while processing the request',
                             schema: internalServerErrorSchema
                         }
                     }
@@ -1514,7 +1514,7 @@ export const mission = [
                             })
                         },
                         500: {
-                            description: 'An error occured while processing the request',
+                            description: 'An error occurred while processing the request',
                             schema: internalServerErrorSchema
                         }
                     }
@@ -1572,7 +1572,7 @@ export const mission = [
                             })
                         },
                         500: {
-                            description: 'An error occured while processing the request',
+                            description: 'An error occurred while processing the request',
                             schema: internalServerErrorSchema
                         }
                     }
@@ -1651,7 +1651,7 @@ export const mission = [
                             })
                         },
                         500: {
-                            description: 'An error occured while processing the request',
+                            description: 'An error occurred while processing the request',
                             schema: internalServerErrorSchema
                         }
                     }
@@ -1716,7 +1716,7 @@ export const mission = [
                             })
                         },
                         500: {
-                            description: 'An error occured while processing the request',
+                            description: 'An error occurred while processing the request',
                             schema: internalServerErrorSchema
                         }
                     }
@@ -1790,7 +1790,7 @@ export const mission = [
                             })
                         },
                         500: {
-                            description: 'An error occured while processing the request',
+                            description: 'An error occurred while processing the request',
                             schema: internalServerErrorSchema
                         }
                     }
@@ -1870,7 +1870,7 @@ export const mission = [
                             })
                         },
                         500: {
-                            description: 'An error occured while processing the request',
+                            description: 'An error occurred while processing the request',
                             schema: internalServerErrorSchema
                         }
                     }
@@ -1929,7 +1929,7 @@ export const mission = [
                             })
                         },
                         500: {
-                            description: 'An error occured while processing the request',
+                            description: 'An error occurred while processing the request',
                             schema: internalServerErrorSchema
                         }
                     }
@@ -2000,7 +2000,7 @@ export const mission = [
                             })
                         },
                         500: {
-                            description: 'An error occured while processing the request',
+                            description: 'An error occurred while processing the request',
                             schema: internalServerErrorSchema
                         }
                     }
@@ -2063,7 +2063,7 @@ export const mission = [
                             })
                         },
                         500: {
-                            description: 'An error occured while processing the request',
+                            description: 'An error occurred while processing the request',
                             schema: internalServerErrorSchema
                         }
                     }
@@ -2120,7 +2120,7 @@ export const mission = [
                             })
                         },
                         500: {
-                            description: 'An error occured while processing the request',
+                            description: 'An error occurred while processing the request',
                             schema: internalServerErrorSchema
                         }
                     }
@@ -2177,7 +2177,7 @@ export const mission = [
                             })
                         },
                         500: {
-                            description: 'An error occured while processing the request',
+                            description: 'An error occurred while processing the request',
                             schema: internalServerErrorSchema
                         }
                     }
@@ -2233,7 +2233,7 @@ export const mission = [
                             })
                         },
                         500: {
-                            description: 'An error occured while processing the request',
+                            description: 'An error occurred while processing the request',
                             schema: internalServerErrorSchema
                         }
                     }
