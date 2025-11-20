@@ -1,7 +1,15 @@
 # Configuration
 This file provides information about all configuration available for slotlist-backend.
 
-## Config values
+## How configuration is loaded
+slotlist-backend reads environment variables in the following order:
+1. Values passed directly to the process (for example through `docker-compose` or Portainer stack variables).
+2. A local `.env` file in the project root. Use this for secrets that should not be committed.
+3. The checked-in defaults from [`dev.env`](../dev.env) and `deployment/portainer/production.env`.
+
+When multiple sources define the same key, the first source in the list above wins. This allows you to override the production defaults without modifying tracked files.
+
+## Core configuration values
 All configuration is handled via environment variables, a full list can be found in the `dev.env` file in the root of the repository.
 
 | Variable | Description | Default |
@@ -41,14 +49,21 @@ All configuration is handled via environment variables, a full list can be found
 | NODE_ENV | Environment for app to run in | development |
 | SENTRY_DSN | DSN for Sentry reporting |   |
 
-The repository ships with `deployment/portainer/production.env`, which contains sane defaults for running the backend at
-`https://api.slotlist.insidearma.de` behind NGINX Proxy Manager. Adjust the values in that file before deploying to production.
-In production, for example, `CONFIG_JWT_ISSUER` is set to `https://api.slotlist.insidearma.de`, while the development default
-remains `http://localhost:3000`.
+The repository ships with `deployment/portainer/production.env`, which contains sane defaults for running the backend at `https://api.slotlist.insidearma.de` behind NGINX Proxy Manager. Adjust the values in that file before deploying to production. In production, for example, `CONFIG_JWT_ISSUER` is set to `https://api.slotlist.insidearma.de`, while the development default remains `http://localhost:3000`.
 
-### Logging configuration
-slotlist-backend uses [bunyan](https://github.com/trentm/node-bunyan) to generate structured logs, which can easily be fed to e.g. elasticsearch or any other log processing and parsing software. Thus, all logs will be in JSON and will be printed to `stdout` by default.  
-Using `CONFIG_LOGGING_STDOUT`, you can define the log level for standard output logging - you can create one or multiple log files by defining environment variables in the format of `CONFIG_LOGGING_FILES_X_PATH` and `CONFIG_LOGGING_FILES_X_LEVEL`, where `X` would be a number starting from 0.  
+## Recommended production overrides
+Use these overrides to align a fresh deployment with the hosted reference environment:
+- **Public endpoints:** `CONFIG_HTTP_PUBLICSCHEME=https` and `CONFIG_HTTP_PUBLICHOST=api.slotlist.insidearma.de` so generated links point to the public URL behind NGINX Proxy Manager.
+- **JWT settings:** Set `CONFIG_JWT_SECRET` to a strong random value and keep `CONFIG_JWT_AUDIENCE`/`CONFIG_JWT_ISSUER` in sync with the public host.
+- **Steam OpenID:** Use the `api.slotlist.insidearma.de` host in `CONFIG_STEAM_OPENID_CALLBACKURL` and `CONFIG_STEAM_OPENID_REALM` when running behind the proxy.
+- **Admin bootstrap:** Provide `DEFAULT_ADMIN_STEAMID` and `DEFAULT_ADMIN_NICKNAME` so an initial admin user is created automatically.
+- **Storage:** Configure `CONFIG_STORAGE_BUCKETNAME`, `CONFIG_STORAGE_PROJECTID` and `CONFIG_STORAGE_KEYFILENAME` if you store images in Google Cloud Storage.
+
+## Logging configuration
+slotlist-backend uses [bunyan](https://github.com/trentm/node-bunyan) to generate structured logs, which can easily be fed to e.g. elasticsearch or any other log processing and parsing software. Thus, all logs will be in JSON and will be printed to `stdout` by default.
+
+Using `CONFIG_LOGGING_STDOUT`, you can define the log level for standard output logging - you can create one or multiple log files by defining environment variables in the format of `CONFIG_LOGGING_FILES_X_PATH` and `CONFIG_LOGGING_FILES_X_LEVEL`, where `X` would be a number starting from 0.
+
 For example, you could define one logfile only containing `error` and `fatal` messages as well as a second one that contains all `debug` and above:
 ```sh
 CONFIG_LOGGING_FILES_0_PATH=logs/slotlist-backend-error.log
@@ -57,6 +72,7 @@ CONFIG_LOGGING_FILES_1_PATH=logs/slotlist-backend-debug.log
 CONFIG_LOGGING_FILES_1_LEVEL=debug
 ```
 
-### Steam OpenID configuration
-slotlist-backend uses the [Steam OpenID provider](https://steamcommunity.com/dev) as an authentication source. You can find more information about Steam OpenID [here](https://steamcommunity.com/dev).  
+## Steam OpenID configuration
+slotlist-backend uses the [Steam OpenID provider](https://steamcommunity.com/dev) as an authentication source. You can find more information about Steam OpenID [here](https://steamcommunity.com/dev).
+
 In order to run slotlist-backend, you will need to generate an API key [by filling out this form](http://steamcommunity.com/dev/apikey). The API key is required to access the Steam API and fetch the authenticated user's public profile information. Note that the provided domain name does not necessarily have to match your public hostname for the slotlist project.
